@@ -28,18 +28,18 @@ Providing anything except an input path is optional, the program will default to
 
 ### Output format arguments
 These arguments are meant mutually exclusive, you can only use on at a time.
-```-extract``` Extracts all files to a directory
-```-xiso``` Creates an Xiso image
-```-god``` Creates a Games on Demand image
-```-cci``` Creates a CCI archive (automatically split if too large for Xbox)
-```-cso``` Creates a CSO archive (automatically split if too large for Xbox)
-```-zar``` Creates a ZAR archive
-```-xbe``` Generates an attach XBE file, does not convert the input file
+- ```-extract``` Extracts all files to a directory
+- ```-xiso``` Creates an Xiso image
+- ```-god``` Creates a Games on Demand image
+- ```-cci``` Creates a CCI archive (automatically split if too large for Xbox)
+- ```-cso``` Creates a CSO archive (automatically split if too large for Xbox)
+- ```-zar``` Creates a ZAR archive
+- ```-xbe``` Generates an attach XBE file, does not convert the input file
 
 ## Options arguments
 These arguments can be stacked, provide as many as you want, though not all output formats will use them. In that case the option is ignored. 
-```-partial-scrub``` Scrubs and trims the output file, random padding data is removed. Compatible with XISO, CCI, CSO, GoD.
-```-full-scrub``` Will completely reauthor the resulting file, this will produce the smallest file possible. Compatible with XISO, CCI, CSO, GoD.
-```-split``` Splits the resulting XISO file if it's too large for OG Xbox.
-```-attach``` Generates an attach XBE file if converting to XISO. Compatible with OG Xbox images.
-```-am-patch``` Patches the "Allowed Media" field in resulting XBE files. Compatible with OG Xbox images.
+- ```-partial-scrub``` Scrubs and trims the output file, random padding data is removed. Compatible with XISO, CCI, CSO, GoD.
+- ```-full-scrub``` Will completely reauthor the resulting file, this will produce the smallest file possible. Compatible with XISO, CCI, CSO, GoD.
+- ```-split``` Splits the resulting XISO file if it's too large for OG Xbox.
+- ```-attach``` Generates an attach XBE file if converting to XISO. Compatible with OG Xbox images.
+- ```-am-patch``` Patches the "Allowed Media" field in resulting XBE files. Compatible with OG Xbox images.
