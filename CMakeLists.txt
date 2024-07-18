@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include(${CMAKE_SOURCE_DIR}/cmake/embed_resources.cmake)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/external/split_fstream)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/ZArchive)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -49,6 +48,9 @@ set(SRC
     ${SRC_DIR}/AvlTree/AvlTree_Create.cpp
     ${SRC_DIR}/AvlTree/AvlIterator.cpp
 
+    ${SRC_DIR}/SplitFStream/SplitIFStream.cpp
+    ${SRC_DIR}/SplitFStream/SplitOFStream.cpp
+
     # ${SRC_DIR}/InputHelper/InputHelper.cpp
     # ${SRC_DIR}/InputHelper/InputHelper_IO.cpp
     # ${SRC_DIR}/InputHelper/TitleHelper.cpp
@@ -63,10 +65,6 @@ set(SRC
 
 add_executable(${PROJECT_NAME} ${SRC})
 
-# if(NOT CMAKE_BUILD_TYPE)
-#   set(CMAKE_BUILD_TYPE Release)
-# endif()
-
 find_package(lz4 CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -77,7 +75,6 @@ find_package(CURL REQUIRED)
 # set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    split_fstream
     zarchive
     
     lz4::lz4
@@ -88,11 +85,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenSSL::Crypto
     CURL::libcurl
 )
-
-# if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-#   message("Build type: Debug")
-#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /Od")
-# elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-#   message("Build type: Release")
-#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2")
-# endif()

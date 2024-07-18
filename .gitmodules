@@ -1,9 +1,6 @@
 [submodule "external/cmake-bin2h"]
 	path = external/cmake-bin2h
 	url = https://github.com/sivachandran/cmake-bin2h.git
-[submodule "external/split_fstream"]
-	path = external/split_fstream
-	url = https://github.com/wiredopposite/split_fstream.git
 [submodule "external/ZArchive"]
 	path = external/ZArchive
 	url = https://github.com/Exzap/ZArchive.git

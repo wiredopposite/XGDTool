@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_set>
 
-#include "split_fstream.h"
+#include "SplitFStream/SplitFStream.h"
 
 #include "Formats/Xiso.h"
 #include "ImageReader/ImageReader.h"

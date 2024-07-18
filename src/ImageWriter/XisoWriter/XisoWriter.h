@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <filesystem>
 
-#include "split_fstream.h"
+#include "SplitFStream/SplitFStream.h"
 
 #include "XGD.h"
 #include "AvlTree/AvlTree.h"

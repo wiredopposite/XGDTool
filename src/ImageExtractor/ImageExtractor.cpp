@@ -33,7 +33,7 @@ void ImageExtractor::extract(const std::filesystem::path& out_dir_path) {
 
             std::vector<char> buffer(Xiso::SECTOR_SIZE);
             uint32_t bytes_remaining = dir_entry.header.file_size;
-            uint64_t read_position = static_cast<uint64_t>(dir_entry.header.start_sector) * Xiso::SECTOR_SIZE;
+            uint64_t read_position = image_reader_->image_offset() + static_cast<uint64_t>(dir_entry.header.start_sector) * Xiso::SECTOR_SIZE;
 
             while (bytes_remaining > 0) {
                 uint32_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);

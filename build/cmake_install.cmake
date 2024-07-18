@@ -34,7 +34,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/jackx/Documents/GitHub/XGDTool/build/external/split_fstream/cmake_install.cmake")
   include("C:/Users/jackx/Documents/GitHub/XGDTool/build/external/ZArchive/cmake_install.cmake")
 
 endif()

@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <fstream>
 
-#include "split_fstream.h"
+#include "SplitFStream/SplitFStream.h"
 
 #pragma pack(push, 1)
 struct FileTime {
