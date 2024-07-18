@@ -1,0 +1,11 @@
+[
+    {
+      "name": "Visual Studio Community 2019 Release - amd64",
+      "visualStudio": "c99be03e",
+      "visualStudioArchitecture": "amd64",
+      "preferredGenerator": {
+        "name": "Ninja"
+      }
+    }
+  ]
+  

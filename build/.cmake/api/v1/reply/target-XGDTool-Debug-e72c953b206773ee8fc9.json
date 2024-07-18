@@ -1,0 +1,494 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "XGDTool.exe"
+		},
+		{
+			"path" : "XGDTool.pdb"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"_add_executable",
+			"add_executable",
+			"target_link_libraries",
+			"set_target_properties",
+			"include",
+			"_find_package",
+			"find_package",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+			"CMakeLists.txt",
+			"external/ZArchive/CMakeLists.txt",
+			"external/vcpkg/installed/x64-windows/share/zstd/zstdTargets.cmake",
+			"external/vcpkg/installed/x64-windows/share/zstd/zstdConfig.cmake",
+			"external/vcpkg/installed/x64-windows/share/curl/CURLConfig.cmake",
+			"external/vcpkg/installed/x64-windows/share/curl/vcpkg-cmake-wrapper.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 64,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 596,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 79,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 40,
+				"parent" : 4
+			},
+			{
+				"command" : 6,
+				"file" : 1,
+				"line" : 71,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 857,
+				"parent" : 6
+			},
+			{
+				"file" : 4,
+				"parent" : 7
+			},
+			{
+				"command" : 4,
+				"file" : 4,
+				"line" : 32,
+				"parent" : 8
+			},
+			{
+				"file" : 3,
+				"parent" : 9
+			},
+			{
+				"command" : 3,
+				"file" : 3,
+				"line" : 67,
+				"parent" : 10
+			},
+			{
+				"command" : 6,
+				"file" : 1,
+				"line" : 75,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 811,
+				"parent" : 12
+			},
+			{
+				"file" : 6,
+				"parent" : 13
+			},
+			{
+				"command" : 5,
+				"file" : 6,
+				"line" : 11,
+				"parent" : 14
+			},
+			{
+				"file" : 5,
+				"parent" : 15
+			},
+			{
+				"command" : 3,
+				"file" : 5,
+				"line" : 77,
+				"parent" : 16
+			},
+			{
+				"command" : 7,
+				"file" : 1,
+				"line" : 19,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "CLI11_COMPILE"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 18,
+					"path" : "C:/Users/jackx/Documents/GitHub/XGDTool/src"
+				},
+				{
+					"backtrace" : 18,
+					"path" : "C:/Users/jackx/Documents/GitHub/XGDTool/generated"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jackx/Documents/GitHub/XGDTool/external/split_fstream/src"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/jackx/Documents/GitHub/XGDTool/external/ZArchive/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/jackx/Documents/GitHub/XGDTool/external/vcpkg/installed/x64-windows/include"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					3,
+					3
+				],
+				"standard" : "20"
+			},
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "split_fstream::@50d4f6be54b5d414bc8f"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "zarchive::@86aaea8be4ba1a6597ee"
+		}
+	],
+	"id" : "XGDTool::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "external\\split_fstream\\split_fstream.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "external\\ZArchive\\zarchive.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\lz4d.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\CLI11.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\libssl.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\libcrypto.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 5,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\zstd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 11,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\zstd.lib",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 17,
+				"fragment" : "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\debug\\lib\\libcurl-d.lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "XGDTool",
+	"nameOnDisk" : "XGDTool.exe",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23
+			]
+		},
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				24
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/XGDLog.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/XGDException.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageReader/ImageReader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageReader/XisoReader/XisoReader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageReader/GoDReader/GoDReader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageReader/CCIReader/CCIReader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageReader/ZARReader/ZARReader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/ImageWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/XisoWriter/XisoWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/GoDWriter/GoDWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/CCIWriter/CCIWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/ZARWriter/ZARWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ImageWriter/CSOWriter/CSOWriter.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/ExeTool/ExeTool.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/AvlTree/AvlTree.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/AvlTree/AvlTree_Calculate.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/AvlTree/AvlTree_Traverse.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/AvlTree/AvlTree_Create.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/AvlTree/AvlIterator.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/Common/EndianUtils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/Common/StringUtils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/Common/IOUtils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "src/Tests/Tests.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 3,
+			"path" : "external/vcpkg/installed/x64-windows/share/nlohmann_json/nlohmann_json.natvis",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "EXECUTABLE"
+}
