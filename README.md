@@ -24,13 +24,14 @@ For Xbox 360 titles, XboxUnity.net is queried for proper titles, which are used 
 
 ## Usage
 ```XGDTool.exe <input_path> <output_directory> -output_format -options```
+
 Providing anything except an input path is optional, the program will default to extraction when provided anything besides an extracted game, in that case it will create an XISO file.
 
 ### Output format arguments
 These arguments are meant mutually exclusive, you can only use on at a time.
 - ```-extract``` Extracts all files to a directory
 - ```-xiso``` Creates an Xiso image
-- ```-god``` Creates a Games on Demand image
+- ```-god``` Creates a Games on Demand image/directory structure
 - ```-cci``` Creates a CCI archive (automatically split if too large for Xbox)
 - ```-cso``` Creates a CSO archive (automatically split if too large for Xbox)
 - ```-zar``` Creates a ZAR archive
