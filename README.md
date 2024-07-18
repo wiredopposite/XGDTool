@@ -18,7 +18,7 @@ XGDTool will automatically detect the type of file provided as an input argument
 ### Proper title lookup and patching
 By default XGDTool will look up OG Xbox titles in an internal database, these titles will be used to patch your default.xbe files so they have proper names when viewing with a dashboard like XBMC. These names are also be used when creating game folders. 
 
-For Xbox 360 titles, XboxUnity.net is queried for proper titles, which are used for folders, as well as Games on Demand Live header naming. This online functionality can be disabled, see the Usage section for how to do this.
+For Xbox 360 titles, XboxUnity.net is queried for proper titles, which are used for folders as well as Games on Demand Live header naming. This online functionality can be disabled, see the Usage section for how to do this.
 
 ### Attach XBE generation
 
@@ -44,3 +44,5 @@ These arguments can be stacked, provide as many as you want, though not all outp
 - ```-split``` Splits the resulting XISO file if it's too large for OG Xbox.
 - ```-attach``` Generates an attach XBE file if converting to XISO. Compatible with OG Xbox images.
 - ```-am-patch``` Patches the "Allowed Media" field in resulting XBE files. Compatible with OG Xbox images.
+- ```-offline``` Disables online functionality.
+- ```-no-rename``` Disables title renaming of resulting XBE files.
