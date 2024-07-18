@@ -1,17 +1,7 @@
+#include "UnityTool/UnityTool.h"
 #include "Common/Utils.h"
-#include "ExeTool/ExeTool.h"
 #include "ImageWriter/GoDWriter/GoD_live_header.h"
 #include "ImageWriter/GoDWriter/GoDWriter.h"
-
-// GoDWriter::GoDWriter(const std::filesystem::path& out_god_directory, ScrubType scrub_type, const bool allowed_media_patch) :
-//     out_god_directory_(out_god_directory),
-//     scrub_type_(scrub_type),
-//     allowed_media_patch_(allowed_media_patch)
-// {
-//     if (!std::filesystem::exists(out_god_directory_)) {
-//         std::filesystem::create_directories(out_god_directory_);
-//     }
-// }
 
 GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type, const bool allowed_media_patch)
     :   image_reader_(image_reader),
@@ -25,6 +15,7 @@ GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType 
 
 GoDWriter::GoDWriter(const std::filesystem::path& in_dir_path, const bool allowed_media_patch)
     :   allowed_media_patch_(allowed_media_patch), 
+        in_dir_path_(in_dir_path),
         avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) {
 }
 
@@ -36,41 +27,70 @@ GoDWriter::~GoDWriter() {
 }
 
 std::vector<std::filesystem::path> GoDWriter::convert(const std::filesystem::path& out_god_directory) {
-    out_god_directory_ = out_god_directory;
+    std::unique_ptr<ExeTool> exe_tool;
 
-    create_directory(out_god_directory_);
+    if (image_reader_) {
+        exe_tool = std::make_unique<ExeTool>(*image_reader_, image_reader_->executable_entry().path);
+
+    } else {
+        std::filesystem::path exe_path;
+
+        for (const auto& entry : std::filesystem::directory_iterator(in_dir_path_)) {
+            if (entry.is_regular_file()) {
+                if (StringUtils::case_insensitive_search(entry.path().filename().string(), "default.xbe")) {
+                    exe_path = entry.path();
+                    break;
+                } else if (StringUtils::case_insensitive_search(entry.path().filename().string(), "default.xex")) {
+                    exe_path = entry.path();
+                    break;
+                }
+            }
+        }
+
+        if (exe_path.empty()) {
+            throw XGDException(ErrCode::FILE_OPEN, HERE(), "Failed to find default.xbe or default.xex in directory: " + in_dir_path_.string());
+        }
+
+        exe_tool = std::make_unique<ExeTool>(exe_path);
+    }
+
+    std::string dir_name;
+
+    switch (exe_tool->platform()) {
+        case Platform::OGX:
+            dir_name = StringUtils::uint32_to_hex_string(GoD::Type::ORIGINAL_XBOX);
+            break;
+        case Platform::X360:
+            dir_name = StringUtils::uint32_to_hex_string(GoD::Type::GAMES_ON_DEMAND);
+            break;
+        default:
+            throw XGDException(ErrCode::MISC, HERE(), "Unknown platform");
+    }
+
+    std::string unique_name = create_unique_name(exe_tool->xex_cert());
+
+    std::filesystem::path out_data_directory = out_god_directory / dir_name / (unique_name + ".data");
+    std::filesystem::path live_header_path = out_god_directory / dir_name / unique_name;
+
+    create_directory(out_data_directory);
 
     std::vector<std::filesystem::path> out_part_paths;
 
     if (avl_tree_) {
-        out_part_paths = convert_to_god_from_avl();
+        out_part_paths = write_data_files_from_avl(out_data_directory);
     } else {
-        out_part_paths = convert_to_god(scrub_type_ == ScrubType::PARTIAL);
+        out_part_paths = write_data_files(out_data_directory, scrub_type_ == ScrubType::PARTIAL);
     }
 
     write_hashtables(out_part_paths);
     SHA1Hash final_mht_hash = finalize_hashtables(out_part_paths);
 
-    return { out_god_directory_ };
+    write_live_header(live_header_path, out_part_paths, exe_tool, final_mht_hash);
+
+    return { out_god_directory };
 }
 
-// void GoDWriter::convert(const std::filesystem::path& in_dir_path) {
-//     AvlTree avl_tree(in_dir_path.filename().string(), in_dir_path);
-//     std::vector<std::filesystem::path> out_part_paths = write_data_files_from_avl(avl_tree, nullptr);
-
-//     write_hashtables(out_part_paths);
-//     SHA1Hash final_mht_hash = finalize_hashtables(out_part_paths);
-// }
-
-// void GoDWriter::convert_to_god_full_scrub(ImageReader& reader) {
-//     AvlTree avl_tree(reader.name(), reader.directory_entries());
-//     std::vector<std::filesystem::path> out_part_paths = write_data_files_from_avl(avl_tree, &reader);
-
-//     write_hashtables(out_part_paths);
-//     SHA1Hash final_mht_hash = finalize_hashtables(out_part_paths);
-// }
-
-std::vector<std::filesystem::path> GoDWriter::convert_to_god_from_avl() {
+std::vector<std::filesystem::path> GoDWriter::write_data_files_from_avl(const std::filesystem::path& out_data_directory) {
     AvlTree& avl_tree = *avl_tree_;
     uint64_t out_iso_size = avl_tree.out_iso_size();
 
@@ -95,11 +115,11 @@ std::vector<std::filesystem::path> GoDWriter::convert_to_god_from_avl() {
             out_name += std::to_string(i);
         }
 
-        out_part_paths.push_back(out_god_directory_ / out_name);
+        out_part_paths.push_back(out_data_directory / out_name);
 
         out_files_.push_back(std::make_unique<std::ofstream>(out_part_paths.back(), std::ios::binary));
         if (!out_files_.back()->is_open()) {
-            throw std::runtime_error("Failed to open output file: " + out_god_directory_.string());
+            throw std::runtime_error("Failed to open output file: " + out_data_directory.string());
         }
     }
 
@@ -121,8 +141,6 @@ std::vector<std::filesystem::path> GoDWriter::convert_to_god_from_avl() {
     }
 
     pad_to_file_modulus(out_iso_size);
-    // write_volume_descriptors(out_iso_size);
-    // write_optimized_tag();
 
     for (auto& file : out_files_) {
         file->close();
@@ -132,7 +150,7 @@ std::vector<std::filesystem::path> GoDWriter::convert_to_god_from_avl() {
     return out_part_paths;
 }
 
-std::vector<std::filesystem::path> GoDWriter::convert_to_god(const bool scrub) {
+std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesystem::path& out_data_directory, const bool scrub) {
     ImageReader& image_reader = *image_reader_;
     uint32_t sector_offset = static_cast<uint32_t>(image_reader.image_offset() / Xiso::SECTOR_SIZE);
     uint32_t end_sector = image_reader.total_sectors();
@@ -163,11 +181,11 @@ std::vector<std::filesystem::path> GoDWriter::convert_to_god(const bool scrub) {
             out_name += std::to_string(i);
         }
 
-        out_part_paths.push_back(out_god_directory_ / out_name);
+        out_part_paths.push_back(out_data_directory / out_name);
 
         out_files_.push_back(std::make_unique<std::ofstream>(out_part_paths.back(), std::ios::binary));
         if (!out_files_.back()->is_open()) {
-            throw std::runtime_error("Failed to open output file: " + out_god_directory_.string());
+            throw std::runtime_error("Failed to open output file: " + out_data_directory.string());
         }
     }
 
@@ -610,16 +628,16 @@ void GoDWriter::write_file(AvlTree::Node* node, ImageReader* reader, int depth) 
     }
 }
 
-void GoDWriter::write_tree(AvlTree::Node* node, ImageReader* reader, int depth) {
+void GoDWriter::write_tree(AvlTree::Node* node, ImageReader* image_reader, int depth) {
     if (!node->subdirectory) {
         return;
     }
 
     if (node->subdirectory != EMPTY_SUBDIRECTORY) {
-        if (reader) {
+        if (image_reader) {
             AvlTree::traverse(node->subdirectory, AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
                 write_file(node, static_cast<ImageReader*>(context), depth);
-            }, reader, 0);
+            }, image_reader, 0);
 
         } else { // Reading from directory
             AvlTree::traverse(node->subdirectory, AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
@@ -629,7 +647,7 @@ void GoDWriter::write_tree(AvlTree::Node* node, ImageReader* reader, int depth) 
         
         AvlTree::traverse(node->subdirectory, AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
             write_tree(node, static_cast<ImageReader*>(context), depth);
-        }, reader, 0);
+        }, image_reader, 0);
 
         Remap remap = remap_sector(node->start_sector);
         padded_seek(out_files_[remap.file_index], remap.offset);
@@ -649,6 +667,7 @@ void GoDWriter::write_tree(AvlTree::Node* node, ImageReader* reader, int depth) 
         std::vector<char> pad_sector(Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
         Remap remap = remap_sector(node->start_sector);
         padded_seek(out_files_[remap.file_index], remap.offset);
+
         out_files_[remap.file_index]->write(pad_sector.data(), Xiso::SECTOR_SIZE);
         current_out_file_ = remap.file_index;
         
@@ -721,18 +740,100 @@ void GoDWriter::write_header(AvlTree& avl_tree) {
     current_out_file_ = remap.file_index;
 }
 
-void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, const SHA1Hash& final_mht_hash, ImageReader* reader) {
-    // std::ofstream live_header(out_header_path, std::ios::binary);
-    // if (!live_header.is_open()) {
-    //     throw XGDException(ErrCode::FILE_OPEN, HERE(), out_header_path.string());
-    // }
+void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, const std::vector<std::filesystem::path>& out_part_paths, std::unique_ptr<ExeTool>& exe_tool, const SHA1Hash& final_mht_hash) {
+    std::fstream out_file(out_header_path, std::ios::in | std::ios::out | std::ios::app);
+    if (!out_file.is_open()) {
+        throw XGDException(ErrCode::FILE_OPEN, HERE(), out_header_path.string());
+    }
 
-    // live_header.write(reinterpret_cast<const char*>(&final_mht_hash.hash), SHA_DIGEST_LENGTH);
-    // if (live_header.fail()) {
-    //     throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write Live header");
-    // }
+    out_file.write(reinterpret_cast<const char*>(EMPTY_LIVE_HEADER), EMPTY_LIVE_HEADER_SIZE);
+    if (out_file.fail()) {
+        throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write empty live header");
+    }
 
-    // live_header.close();
+    out_file.seekp(0x354, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().media_id), sizeof(uint32_t));
+    out_file.seekp(0x360, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().title_id), sizeof(uint32_t));
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().platform), sizeof(uint8_t));
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().executable_type), sizeof(uint8_t));
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().disc_number), sizeof(uint8_t));
+    out_file.write(reinterpret_cast<const char*>(&exe_tool->xex_cert().disc_count), sizeof(uint8_t));
+
+    uint64_t parts_total_size = 0;
+    for (auto& part_path : out_part_paths) {
+        parts_total_size += static_cast<uint32_t>(std::filesystem::file_size(part_path));
+    }
+
+    uint32_t parts_written_size = static_cast<uint32_t>(parts_total_size / 0x100);
+    uint32_t part_count = static_cast<uint32_t>(out_part_paths.size());
+    uint32_t content_type = (exe_tool->platform() == Platform::X360) ? GoD::Type::GAMES_ON_DEMAND : GoD::Type::ORIGINAL_XBOX;
+
+    EndianUtils::little_32(part_count);
+    EndianUtils::big_32(parts_written_size);
+    EndianUtils::big_32(content_type);
+
+    out_file.seekp(0x344, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&content_type), sizeof(uint32_t));
+
+    out_file.seekp(0x37D, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&final_mht_hash.hash), SHA_DIGEST_LENGTH);
+    
+    out_file.seekp(0x3A0, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&part_count), sizeof(uint32_t));
+    out_file.write(reinterpret_cast<const char*>(&parts_written_size), sizeof(uint32_t));
+
+    UnityTool unity_tool; 
+    std::string title_name;
+    std::vector<char> title_icon;
+
+    if (!offline_mode_ && 
+        unity_tool.internet_connected() &&
+        (title_name = unity_tool.get_title_name(exe_tool->title_id())) != unity_tool.error()) {
+        unity_tool.get_title_icon(exe_tool->title_id(), title_icon);
+    } else {
+        title_name = out_header_path.parent_path().parent_path().filename().string();
+        title_name.substr(0, title_name.find_last_of(' ['));
+    }
+
+    std::vector<char16_t> title_name_utf16 = StringUtils::utf8_to_utf16(title_name);
+    size_t title_name_size = std::min(title_name_utf16.size() * sizeof(char16_t), static_cast<size_t>(80));
+    
+    out_file.seekp(0x411 + 1, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(title_name_utf16.data()), title_name_size);
+    out_file.seekp(0x1691 + 1, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(title_name_utf16.data()), title_name_size);
+
+    uint32_t title_icon_size = (title_icon.size() > 0) ? static_cast<uint32_t>(title_icon.size()) : 20;
+    EndianUtils::big_32(title_icon_size);
+
+    out_file.seekp(0x1712, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&title_icon_size), sizeof(uint32_t));
+    out_file.seekp(0x1716, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&title_icon_size), sizeof(uint32_t));
+
+    if (title_icon.size() > 0) {
+        out_file.seekp(0x171A, std::ios::beg);
+        out_file.write(title_icon.data(), title_icon.size());
+        out_file.seekp(0x571a, std::ios::beg);
+        out_file.write(title_icon.data(), title_icon.size());
+    }
+
+    std::vector<char> header_buffer(EMPTY_LIVE_HEADER_SIZE - 0x344);
+
+    out_file.seekp(0x344, std::ios::beg);
+    out_file.read(header_buffer.data(), header_buffer.size());
+
+    SHA1Hash header_hash = compute_sha1(header_buffer.data(), header_buffer.size());
+
+    out_file.seekp(0x32C, std::ios::beg);
+    out_file.write(reinterpret_cast<const char*>(&header_hash.hash), SHA_DIGEST_LENGTH);
+
+    if (out_file.fail()) {
+        throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write live header");
+    }  
+
+    out_file.close();
 }
 
 GoDWriter::Remap GoDWriter::remap_sector(uint64_t iso_sector) {
@@ -789,4 +890,32 @@ GoDWriter::SHA1Hash GoDWriter::compute_sha1(const char* data, size_t size) {
     SHA1Hash result;
     SHA1(reinterpret_cast<const unsigned char*>(data), size, result.hash);
     return result;
+}
+
+std::string GoDWriter::create_unique_name(const Xex::ExecutionInfo& xex_cert) {
+    std::ostringstream ss;
+    write_little_endian(ss, xex_cert.title_id);
+    write_little_endian(ss, xex_cert.media_id);
+    write_little_endian(ss, xex_cert.disc_number);
+    write_little_endian(ss, xex_cert.disc_count);
+
+    std::string data = ss.str();
+
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char*>(data.c_str()), data.size(), hash);
+
+    std::ostringstream hex_stream;
+    for (size_t i = 0; i < SHA_DIGEST_LENGTH / 2; ++i) {
+        hex_stream << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(hash[i]);
+    }
+
+    return hex_stream.str();
+}
+
+template <typename T>
+void GoDWriter::write_little_endian(std::ostream& os, T value) {
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        os.put(static_cast<char>(value & 0xFF));
+        value >>= 8;
+    }
 }

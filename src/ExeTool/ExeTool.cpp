@@ -17,13 +17,13 @@ ExeTool::ExeTool(const std::filesystem::path& in_exe_path) {
     }
 }
 
-ExeTool::ExeTool(ImageReader& image_reader, const std::filesystem::path& node_path) {
+ExeTool::ExeTool(ImageReader& image_reader, const std::filesystem::path& entry_path) {
     platform_ = image_reader.platform();
 
     if (platform_ == Platform::X360) {
-        get_xex_cert_from_reader(image_reader, node_path);
+        get_xex_cert_from_reader(image_reader, entry_path);
     } else if (platform_ == Platform::OGX) {
-        get_xbe_cert_from_reader(image_reader, node_path);
+        get_xbe_cert_from_reader(image_reader, entry_path);
         create_xex_cert_from_xbe();
     }
 }

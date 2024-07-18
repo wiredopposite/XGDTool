@@ -133,6 +133,12 @@
 },
 {
   "directory": "C:/Users/jackx/Documents/GitHub/XGDTool/build",
+  "command": "C:\\PROGRA~2\\MICROS~2\\2022\\BUILDT~1\\VC\\Tools\\MSVC\\1440~1.338\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DCLI11_COMPILE -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\generated -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\ZArchive\\include -external:IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\include -external:W0 /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20 /FoCMakeFiles\\XGDTool.dir\\src\\UnityTool\\UnityTool.cpp.obj /FdCMakeFiles\\XGDTool.dir\\ /FS -c C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src\\UnityTool\\UnityTool.cpp",
+  "file": "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src\\UnityTool\\UnityTool.cpp",
+  "output": "CMakeFiles\\XGDTool.dir\\src\\UnityTool\\UnityTool.cpp.obj"
+},
+{
+  "directory": "C:/Users/jackx/Documents/GitHub/XGDTool/build",
   "command": "C:\\PROGRA~2\\MICROS~2\\2022\\BUILDT~1\\VC\\Tools\\MSVC\\1440~1.338\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DCLI11_COMPILE -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\generated -IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\ZArchive\\include -external:IC:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\external\\vcpkg\\installed\\x64-windows\\include -external:W0 /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20 /FoCMakeFiles\\XGDTool.dir\\src\\Common\\EndianUtils.cpp.obj /FdCMakeFiles\\XGDTool.dir\\ /FS -c C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src\\Common\\EndianUtils.cpp",
   "file": "C:\\Users\\jackx\\Documents\\GitHub\\XGDTool\\src\\Common\\EndianUtils.cpp",
   "output": "CMakeFiles\\XGDTool.dir\\src\\Common\\EndianUtils.cpp.obj"

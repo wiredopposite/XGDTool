@@ -11,15 +11,20 @@
 class ExeTool {
 public:
     ExeTool(const std::filesystem::path& in_exe_path);
-    ExeTool(ImageReader& image_reader, const std::filesystem::path& node_path);
+    ExeTool(ImageReader& image_reader, const std::filesystem::path& entry_path);
+
     ~ExeTool() {};
 
     Platform platform() { return platform_; };
-    Xex::ExecutionInfo& xex_cert() { return xex_cert_; };
-    Xbe::Cert& xbe_cert() { return xbe_cert_; };
-    uint32_t title_id();
+
+    const Xex::ExecutionInfo& xex_cert() { return xex_cert_; }; // Will return constructed Xex cert for Xbe
+    const Xbe::Cert& xbe_cert() { return xbe_cert_; }; // Only valid for Xbe
+
+    uint32_t title_id(); // Will byte swap if host endian != cert endian
+
     uint64_t exe_offset() { return exe_offset_; }; // Absolute offset in image
     uint64_t cert_offset() { return cert_offset_; }; // Relative to exe_offset
+
     void patch_allowed_media(Xbe::Cert& xbe_cert);
 
 private:
