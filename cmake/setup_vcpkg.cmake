@@ -23,6 +23,7 @@ endfunction()
 
 bootstrap_vcpkg()
 
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg integrate install)
 execute_process(COMMAND ${VCPKG_DIR}/vcpkg install lz4)
 execute_process(COMMAND ${VCPKG_DIR}/vcpkg install nlohmann-json)
 execute_process(COMMAND ${VCPKG_DIR}/vcpkg install cli11)
