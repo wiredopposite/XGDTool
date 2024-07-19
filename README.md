@@ -42,13 +42,13 @@ Auto formats:
 
 ## Optional settings arguments
 These arguments can be stacked, though not all output formats will use them. In that case the option is ignored, if any are incompatible with one another, the first argument provided will be used. 
-- ```-partial-scrub``` Scrubs and trims the output image, random padding data is removed.
-- ```-full-scrub``` Completely reauthor the resulting image, this will produce the smallest file possible.
-- ```-split``` Splits the resulting XISO file if it's too large for OG Xbox.
-- ```-attach``` Generates an attach XBE file along with the output file.
-- ```-am-patch``` Patches the "Allowed Media" field in resulting XBE files.
-- ```-offline``` Disables online functionality.
-- ```-no-rename``` Disables title renaming of resulting XBE files.
+- ```-partial-scrub```  Scrubs and trims the output image, random padding data is removed.
+- ```-full-scrub```     Completely reauthor the resulting image, this will produce the smallest file possible.
+- ```-split```          Splits the resulting XISO file if it's too large for OG Xbox.
+- ```-attach```         Generates an attach XBE file along with the output file.
+- ```-am-patch```       Patches the "Allowed Media" field in resulting XBE files.
+- ```-offline```        Disables online functionality.
+- ```-no-rename```      Disables title renaming of resulting XBE files.
 
 # Build
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
