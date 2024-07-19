@@ -235,20 +235,15 @@ void XisoReader::populate_directory_entries(bool exe_only) {
     }
 
     std::sort(directory_entries_.begin(), directory_entries_.end(), [](const Xiso::DirectoryEntry& a, const Xiso::DirectoryEntry& b) {
-        // Directories come before files
         bool a_is_dir = a.header.attributes & Xiso::ATTRIBUTE_DIRECTORY;
         bool b_is_dir = b.header.attributes & Xiso::ATTRIBUTE_DIRECTORY;
         
         if (a_is_dir != b_is_dir) {
             return a_is_dir > b_is_dir;
         }
-        // Within the same directory level, sort lexicographically by path
+
         return a.path < b.path;
     });
-
-    for (const auto& entry : directory_entries_) {
-        XGDLog(Debug) << "Directory entry: " << entry.path << XGDLog::Endl;
-    }
 }
 
 void XisoReader::populate_data_sectors() {
@@ -296,15 +291,15 @@ void XisoReader::populate_data_sectors() {
         in_file_.seekg(current_position, std::ios::beg);
         in_file_.read(reinterpret_cast<char*>(&read_entry.header), sizeof(Xiso::DirectoryEntry::Header));
 
-        std::vector<char> buffer(std::min(read_entry.header.name_length, static_cast<uint8_t>(UINT8_MAX)), 0);
+        // std::vector<char> buffer(std::min(read_entry.header.name_length, static_cast<uint8_t>(UINT8_MAX)), 0);
 
-        in_file_.read(buffer.data(), buffer.size());
-        if (in_file_.fail()) {
-            throw XGDException(ErrCode::FILE_READ, HERE(), "File read error");
-        }
+        // in_file_.read(buffer.data(), buffer.size());
+        // if (in_file_.fail()) {
+        //     throw XGDException(ErrCode::FILE_READ, HERE(), "File read error");
+        // }
 
-        read_entry.filename.assign(buffer.data(), buffer.size());
-        XGDLog(Debug) << "Read directory entry: " << read_entry.filename << XGDLog::Endl;
+        // read_entry.filename.assign(buffer.data(), buffer.size());
+        // XGDLog(Debug) << "Read directory entry: " << read_entry.filename << XGDLog::Endl;
 
         if (read_entry.header.left_offset == Xiso::PAD_SHORT) {
             continue;

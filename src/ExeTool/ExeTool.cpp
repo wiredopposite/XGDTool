@@ -71,14 +71,15 @@ void ExeTool::get_xbe_cert_from_xbe(const std::filesystem::path& in_xbe_path) {
     in_file.close();
 }
 
-void ExeTool::get_xbe_cert_from_reader(ImageReader& reader, const std::filesystem::path& node_path) {
+void ExeTool::get_xbe_cert_from_reader(ImageReader& image_reader, const std::filesystem::path& node_path) {
     Xiso::DirectoryEntry exe_entry;
     bool found = false;
     
-    for (auto& entry : reader.directory_entries()) {
+    for (auto& entry : image_reader.directory_entries()) {
         if (entry.path == node_path) {
             exe_entry = entry;
             found = true;
+            XGDLog(Debug) << "Found executable entry in directory entries: " << node_path.string() << "\n";
             break;
         }
     }
@@ -88,18 +89,18 @@ void ExeTool::get_xbe_cert_from_reader(ImageReader& reader, const std::filesyste
     }
 
     exe_offset_ = static_cast<uint64_t>(exe_entry.header.start_sector) * Xiso::SECTOR_SIZE;
-    exe_offset_ += reader.image_offset();
+    exe_offset_ += image_reader.image_offset();
 
     Xbe::Header xbe_header;
-    reader.read_bytes(exe_offset_, sizeof(Xbe::Header), reinterpret_cast<char*>(&xbe_header));
+    image_reader.read_bytes(exe_offset_, sizeof(Xbe::Header), reinterpret_cast<char*>(&xbe_header));
 
-    if (std::memcmp(&xbe_header.signature, "XBEH", 4) != 0) {
+    if (std::memcmp(&xbe_header.magic, "XBEH", 4) != 0) {
         throw XGDException(ErrCode::MISC, HERE(), "Invalid XBE header magic.");
     }
 
     cert_offset_ = (xbe_header.cert_address - xbe_header.base_address);
 
-    reader.read_bytes(exe_offset_ + cert_offset_, sizeof(Xbe::Cert), reinterpret_cast<char*>(&xbe_cert_));
+    image_reader.read_bytes(exe_offset_ + cert_offset_, sizeof(Xbe::Cert), reinterpret_cast<char*>(&xbe_cert_));
 }
 
 void ExeTool::get_xex_cert_from_xex(const std::filesystem::path& in_xex_path) {

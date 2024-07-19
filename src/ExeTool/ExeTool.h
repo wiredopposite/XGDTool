@@ -38,8 +38,8 @@ private:
 
     void get_xbe_cert_from_xbe(const std::filesystem::path& in_xbe_path);
     void get_xex_cert_from_xex(const std::filesystem::path& in_xex_path);
-    void get_xex_cert_from_reader(ImageReader& reader, const std::filesystem::path& node_path);
-    void get_xbe_cert_from_reader(ImageReader& reader, const std::filesystem::path& node_path);
+    void get_xex_cert_from_reader(ImageReader& image_reader, const std::filesystem::path& node_path);
+    void get_xbe_cert_from_reader(ImageReader& image_reader, const std::filesystem::path& node_path);
     void create_xex_cert_from_xbe();
 };
 
