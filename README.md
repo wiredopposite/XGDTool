@@ -45,7 +45,7 @@ These arguments can be stacked, though not all output formats will use them. In 
 - ```-partial-scrub``` Scrubs and trims the output image, random padding data is removed.
 - ```-full-scrub``` Completely reauthor the resulting image, this will produce the smallest file possible.
 - ```-split``` Splits the resulting XISO file if it's too large for OG Xbox.
-- ```-attach``` Generates an attach XBE file if converting to XISO.
+- ```-attach``` Generates an attach XBE file along with the output file.
 - ```-am-patch``` Patches the "Allowed Media" field in resulting XBE files.
 - ```-offline``` Disables online functionality.
 - ```-no-rename``` Disables title renaming of resulting XBE files.
