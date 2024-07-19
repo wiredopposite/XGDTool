@@ -34,11 +34,10 @@ These arguments are mutually exclusive, you can only use on at a time.
 - ```-xbe``` Generates an attach XBE file, does not convert the input file
 
 Auto formats:
-- ```-ogx``` Automatically choose the best format and settings for OG Xbox
-- ```-ogx-cerb``` Automatically choose the best format and settings for Cerbios
-- ```-x360``` Automatically choose the best format and settings for Xbox 360
-- ```-xemu``` Automatically choose the best format and settings for Xemu
-- ```-xenia``` Automatically choose the best format and settings for Xenia
+- ```-ogx``` Automatically choose the best format and settings for use with OG Xbox
+- ```-x360``` Automatically choose the best format and settings for use with Xbox 360
+- ```-xemu``` Automatically choose the best format and settings for use with Xemu
+- ```-xenia``` Automatically choose the best format and settings for use with Xenia
 
 ## Optional settings arguments
 These arguments can be stacked, though not all output formats will use them. In that case the option is ignored, if any are incompatible with one another, the first argument provided will be used. 
