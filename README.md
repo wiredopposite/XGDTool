@@ -14,7 +14,6 @@ XGDTool is a command line OG and 360 Xbox disc utility, capable of converting di
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
 - Attach XBE generation.
 - Online database lookup for accurate file naming (can be disabled).
-- XBE title patching, innacurate XBE names are automatically patched (can be disabled).
 
 ## Usage
 ```XGDTool.exe <input_path> <output_directory> -output_format -settings```
@@ -23,29 +22,31 @@ Providing anything except an input path is optional, the program will default to
 
 ### Output format arguments
 These arguments are mutually exclusive, you can only use on at a time.
-- ```-extract``` Extracts all files to a directory
-- ```-xiso``` Creates an Xiso image
-- ```-god``` Creates a Games on Demand image/directory structure
-- ```-cci``` Creates a CCI archive (automatically split if too large for Xbox)
-- ```-cso``` Creates a CSO archive (automatically split if too large for Xbox)
-- ```-zar``` Creates a ZAR archive
-- ```-xbe``` Generates an attach XBE file, does not convert the input file
+- ```-extract```    Extracts all files to a directory
+- ```-xiso```       Creates an Xiso image
+- ```-god```        Creates a Games on Demand image/directory structure
+- ```-cci```        Creates a CCI archive (automatically split if too large for Xbox)
+- ```-cso```        Creates a CSO archive (automatically split if too large for Xbox)
+- ```-zar```        Creates a ZAR archive
+- ```-xbe```        Generates an attach XBE file, does not convert the input file
 
-Auto formats:
-- ```-ogx``` Automatically choose the best format and settings for use with OG Xbox
-- ```-x360``` Automatically choose the best format and settings for use with Xbox 360
-- ```-xemu``` Automatically choose the best format and settings for use with Xemu
-- ```-xenia``` Automatically choose the best format and settings for use with Xenia
+"Choose for me" formats:
+- ```-ogx```    Choose the best format and settings for use with OG Xbox
+- ```-x360```   Choose the best format and settings for use with Xbox 360
+- ```-xemu```   Choose the best format and settings for use with Xemu
+- ```-xenia```  Choose the best format and settings for use with Xenia
 
 ## Optional settings arguments
 These arguments can be stacked, though not all output formats will use them. In that case the option is ignored, if any are incompatible with one another, the first argument provided will be used. 
 - ```-partial-scrub```  Scrubs and trims the output image, random padding data is removed.
 - ```-full-scrub```     Completely reauthor the resulting image, this will produce the smallest file possible.
 - ```-split```          Splits the resulting XISO file if it's too large for OG Xbox.
+- ```-rename```         Patches the title field of resulting XBE files to one found in the database.
 - ```-attach```         Generates an attach XBE file along with the output file.
 - ```-am-patch```       Patches the "Allowed Media" field in resulting XBE files.
 - ```-offline```        Disables online functionality.
-- ```-no-rename```      Disables title renaming of resulting XBE files.
+- ```-debug```          Enable debug logging.
+- ```-quiet```          Disable all logging except for warnings and errors.
 
 # Build
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 

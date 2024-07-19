@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-// https://github.com/emoose/idaxex/blob/master/structs.hpp
+// https://github.com/emoose/idaxex
 
 namespace Xex {
 

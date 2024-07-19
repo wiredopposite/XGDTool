@@ -6,10 +6,23 @@
 #include <memory>
 
 #include "ImageReader/ImageReader.h"
+#include "TitleHelper/TitleHelper.h"
 
 enum class ScrubType { NONE, PARTIAL, FULL };
 
-class ImageWriter {
+struct Settings 
+{
+    ScrubType scrub_type{ScrubType::NONE};
+    bool split{false};
+    bool attach_xbe{false};
+    bool allowed_media_patch{false};
+    bool offline_mode{false};
+    bool rename_xbe{false};
+    LogLevel log_level{LogLevel::Normal};
+};
+
+class ImageWriter 
+{
 public:
     virtual ~ImageWriter() = default;   
 
@@ -18,9 +31,17 @@ public:
     void create_directory(const std::filesystem::path& dir_path);
 };
 
-namespace WriterFactory {
-    std::unique_ptr<ImageWriter> create(FileType out_file_type, std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, bool split, bool allowed_media_patch);
-    std::unique_ptr<ImageWriter> create(FileType out_file_type, const std::filesystem::path& in_dir_path, bool split, bool allowed_media_patch);
+namespace WriterFactory 
+{
+    std::unique_ptr<ImageWriter> create(FileType out_file_type, 
+                                        std::shared_ptr<ImageReader> image_reader, 
+                                        std::unique_ptr<TitleHelper>& title_helper, 
+                                        Settings settings);
+
+    std::unique_ptr<ImageWriter> create(FileType out_file_type, 
+                                        const std::filesystem::path& in_dir_path, 
+                                        std::unique_ptr<TitleHelper>& title_helper, 
+                                        Settings settings);
 };
 
 #endif // _IMAGE_WRITER_H_

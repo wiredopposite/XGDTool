@@ -52,6 +52,7 @@ set(SRC
     ${SRC_DIR}/SplitFStream/SplitOFStream.cpp
 
     ${SRC_DIR}/UnityTool/UnityTool.cpp
+    ${SRC_DIR}/TitleHelper/TitleHelper.cpp
 
     # ${SRC_DIR}/InputHelper/InputHelper.cpp
     # ${SRC_DIR}/InputHelper/InputHelper_IO.cpp

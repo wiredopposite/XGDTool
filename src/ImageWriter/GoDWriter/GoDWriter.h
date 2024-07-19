@@ -19,11 +19,12 @@
 #include "AvlTree/AvlTree.h"
 #include "ImageReader/ImageReader.h"
 #include "ImageWriter/ImageWriter.h"
+#include "TitleHelper/TitleHelper.h"
 
 class GoDWriter : public ImageWriter {
 public:
-    GoDWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type, const bool allowed_media_patch);
-    GoDWriter(const std::filesystem::path& in_dir_path, const bool allowed_media_patch);
+    GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type, const bool allowed_media_patch);
+    GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper, const bool allowed_media_patch);
 
     ~GoDWriter() override;
 
@@ -42,6 +43,7 @@ private:
 
     std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
+    std::unique_ptr<TitleHelper>& title_helper_{nullptr};
     std::filesystem::path in_dir_path_;
 
     std::vector<std::unique_ptr<std::ofstream>> out_files_;
@@ -51,35 +53,33 @@ private:
 
     ScrubType scrub_type_{ScrubType::NONE};
     bool allowed_media_patch_{false};
-    bool offline_mode_{false};
 
     uint64_t prog_total_{0};
     uint64_t prog_processed_{0};
 
+    //Either no or partial scrubbing
     std::vector<std::filesystem::path> write_data_files(const std::filesystem::path& out_data_directory, const bool scrub);
+
+    //Full scrubbing
     std::vector<std::filesystem::path> write_data_files_from_avl(const std::filesystem::path& out_data_directory);
-
-    void write_header(AvlTree& avl_tree);
-    void pad_to_file_modulus(const uint64_t& out_iso_size);
-
+    void write_xiso_header(AvlTree& avl_tree);
+    void write_final_xiso_padding(const uint64_t& out_iso_size);
     void write_tree(AvlTree::Node* node, ImageReader* reader, int depth);
     void write_entry(AvlTree::Node* node, void* context, int depth);
     void write_file(AvlTree::Node* node, ImageReader* reader, int depth);
     void write_file_dir(AvlTree::Node* node, void* context, int depth);
 
+    //Finalize out files
     void write_hashtables(const std::vector<std::filesystem::path>& part_paths);
     SHA1Hash finalize_hashtables(const std::vector<std::filesystem::path>& part_paths);
-    void write_live_header(const std::filesystem::path& out_header_path, const std::vector<std::filesystem::path>& out_part_paths, std::unique_ptr<ExeTool>& exe_tool, const SHA1Hash& final_mht_hash);
+    void write_live_header(const std::filesystem::path& out_header_path, const std::vector<std::filesystem::path>& out_part_paths, const SHA1Hash& final_mht_hash);
 
+    //Helper functions
     Remap remap_sector(uint64_t iso_sector);
     Remap remap_offset(uint64_t iso_offset);
     uint64_t to_iso_offset(uint64_t god_offset, uint32_t god_file_index);
     void padded_seek(std::unique_ptr<std::ofstream>& out_file, uint64_t offset);
     SHA1Hash compute_sha1(const char* data, size_t size);
-    std::string create_unique_name(const Xex::ExecutionInfo& xex_cert);
-
-    template <typename T>
-    void write_little_endian(std::ostream& os, T value);
 };
 
 #endif // _GoD_WRITER_H_
