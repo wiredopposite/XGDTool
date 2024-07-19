@@ -32,6 +32,7 @@ These arguments are mutually exclusive, you can only use on at a time.
 - ```-cso``` Creates a CSO archive (automatically split if too large for Xbox)
 - ```-zar``` Creates a ZAR archive
 - ```-xbe``` Generates an attach XBE file, does not convert the input file
+
 Auto formats:
 - ```-ogx``` Automatically choose the best format and settings for OG Xbox
 - ```-ogx-cerb``` Automatically choose the best format and settings for Cerbios
