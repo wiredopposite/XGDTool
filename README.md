@@ -3,12 +3,12 @@ XGDTool is a command line OG and 360 Xbox disc utility, capable of converting di
 
 ## Features
 - Supports convertion between following formats:
--- ISO / XISO
--- Extracted files (Xex / Xbe / HDD Ready)
--- GoD / Games on Demand
--- CCI
--- CSO
--- ZAR
+    - ISO / XISO
+    - Extracted files (Xex / Xbe / HDD Ready)
+    - GoD / Games on Demand
+    - CCI
+    - CSO
+    - ZAR
 - Seamless conversion for almost all formats. For example, you can directly convert a GoD image to a ZAR archive, or an extracted game to a CCI archive. ZAR as an input format is the only one that doesn't support this seamless conversion yet.
 - Batch processing, a folder full of different game formats can be batch converted to a single format with one command line argument.
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
