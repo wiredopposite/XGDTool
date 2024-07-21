@@ -30,7 +30,6 @@ set(SRC
     ${SRC_DIR}/ImageReader/XisoReader/XisoReader.cpp
     ${SRC_DIR}/ImageReader/GoDReader/GoDReader.cpp
     ${SRC_DIR}/ImageReader/CCIReader/CCIReader.cpp
-    ${SRC_DIR}/ImageReader/ZARReader/ZARReader.cpp
     ${SRC_DIR}/ImageReader/CSOReader/CSOReader.cpp
 
     ${SRC_DIR}/ImageWriter/ImageWriter.cpp
@@ -42,7 +41,8 @@ set(SRC
 
     ${SRC_DIR}/ImageExtractor/ImageExtractor.cpp
 
-    ${SRC_DIR}/ExeTool/ExeTool.cpp
+    ${SRC_DIR}/Executable/ExeTool.cpp
+    ${SRC_DIR}/Executable/AttachXbeTool.cpp
 
     ${SRC_DIR}/TitleHelper/TitleHelper.cpp
 
@@ -58,8 +58,6 @@ set(SRC
     ${SRC_DIR}/Common/EndianUtils.cpp
     ${SRC_DIR}/Common/StringUtils.cpp
     ${SRC_DIR}/Common/IOUtils.cpp
-
-    ${SRC_DIR}/Tests/Tests.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

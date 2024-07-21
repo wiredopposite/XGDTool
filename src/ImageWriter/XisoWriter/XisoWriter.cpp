@@ -2,7 +2,6 @@
 
 #include "Common/Utils.h"
 #include "ImageWriter/XisoWriter/XisoWriter.h"
-#include "ExeTool/ExeTool.h"
 #include "AvlTree/AvlTree.h"
 
 XisoWriter::XisoWriter(std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, const bool split) 

@@ -163,7 +163,10 @@ std::string truncate_utf8(const std::string& input, size_t max_bytes) {
 std::string uint32_to_hex_string(uint32_t value) {
     std::stringstream ss;
     ss << std::hex << std::setw(8) << std::setfill('0') << value;
-    return ss.str();
+    
+    std::string hex_str = ss.str();
+    std::transform(hex_str.begin(), hex_str.end(), hex_str.begin(), ::toupper);
+    return hex_str;
 }
 
 }; // namespace StringUtils

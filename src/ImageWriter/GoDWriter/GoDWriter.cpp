@@ -82,8 +82,8 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files_from_avl(const st
     prog_total_ = avl_tree.total_bytes();
     prog_processed_ = 0;
 
-    uint32_t total_out_data_blocks = static_cast<uint32_t>(out_iso_size / GoD::BLOCK_SIZE);
-    uint32_t total_out_parts = total_out_data_blocks / GoD::DATA_BLOCKS_PER_PART;
+    uint32_t total_out_data_blocks = static_cast<uint32_t>(std::ceil(out_iso_size / static_cast<double>(GoD::BLOCK_SIZE)));
+    uint32_t total_out_parts = static_cast<uint32_t>(std::ceil(total_out_data_blocks / static_cast<double>(GoD::DATA_BLOCKS_PER_PART)));
 
     std::vector<std::filesystem::path> out_part_paths;
 
@@ -146,8 +146,8 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesy
     }
 
     uint32_t total_out_sectors = end_sector - sector_offset;
-    uint32_t total_out_data_blocks = total_out_sectors / (GoD::BLOCK_SIZE / Xiso::SECTOR_SIZE);
-    uint32_t total_out_parts = (total_out_data_blocks / GoD::DATA_BLOCKS_PER_PART) + ((total_out_data_blocks % GoD::DATA_BLOCKS_PER_PART) ? 1 : 0);
+    uint32_t total_out_data_blocks = static_cast<uint32_t>(std::ceil((total_out_sectors * Xiso::SECTOR_SIZE) / static_cast<double>(GoD::BLOCK_SIZE)));
+    uint32_t total_out_parts = static_cast<uint32_t>(std::ceil(total_out_data_blocks / static_cast<double>(GoD::DATA_BLOCKS_PER_PART)));
 
     XGDLog() << "Total data blocks: " << total_out_data_blocks << " total parts: " << total_out_parts << XGDLog::Endl;  
 
@@ -419,97 +419,30 @@ void GoDWriter::write_file_dir(AvlTree::Node* node, void* context, int depth)
         throw XGDException(ErrCode::FILE_OPEN, HERE(), "Failed to open file: " + node->path.string());
     }
 
-    // if (allowed_media_patch_ && node->filename.size() > 4 && StringUtils::case_insensitive_search(node->filename, ".xbe")) {
-    //     ExeTool exe_tool(node->path);
-    //     Xbe::Cert xbe_cert = exe_tool.xbe_cert();
-    //     exe_tool.patch_allowed_media(xbe_cert);
+    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    uint64_t current_write_sector = node->start_sector;
+    std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
 
-    //     auto cert_offset = (node->start_sector * Xiso::SECTOR_SIZE) + exe_tool.cert_offset();
-    //     auto cert_pos_in_sector = cert_offset % Xiso::SECTOR_SIZE;
-    //     auto current_sector = node->start_sector;
-    //     auto cert_sector = current_sector + (cert_offset / Xiso::SECTOR_SIZE);
-    //     auto bytes_remaining = static_cast<uint32_t>(node->file_size);
-    //     std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
+    while (bytes_remaining > 0) 
+    {
+        auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
 
-    //     while (bytes_remaining > 0) {
-    //         if (current_sector == cert_sector) {
-    //             auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE * 2);
-    //             std::vector<char> cert_buffer(read_size);
+        in_file.read(buffer.data(), read_size);
 
-    //             in_file.read(cert_buffer.data(), read_size);
-    //             if (in_file.fail()) {
-    //                 throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->path.string());
-    //             }
+        remapped = remap_sector(current_write_sector);
+        padded_seek(out_files_[remapped.file_index], remapped.offset);
 
-    //             std::memcpy(cert_buffer.data() + cert_pos_in_sector, &xbe_cert, sizeof(Xbe::Cert));
-
-    //             remapped = remap_sector(current_sector);
-    //             padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-    //             auto write_size = std::min(read_size, Xiso::SECTOR_SIZE);
-    //             out_files_[remapped.file_index]->write(cert_buffer.data(), write_size);
-
-    //             current_sector++;
-
-    //             if (write_size < read_size) {
-    //                 remapped = remap_sector(current_sector);
-    //                 padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-    //                 out_files_[remapped.file_index]->write(cert_buffer.data() + Xiso::SECTOR_SIZE, read_size - Xiso::SECTOR_SIZE);
-    //                 current_sector++;
-    //             }
-
-    //             bytes_remaining -= read_size;
-
-    //             XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
-    //             continue;
-    //         }
-
-    //         auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
-
-    //         in_file.read(buffer.data(), read_size);
-    //         if (in_file.fail()) {
-    //             throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->path.string());
-    //         }
-
-    //         remapped = remap_sector(current_sector);
-    //         padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-    //         out_files_[remapped.file_index]->write(buffer.data(), read_size * Xiso::SECTOR_SIZE);
-    //         if (out_files_[remapped.file_index]->fail()) {
-    //             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-    //         }
-
-    //         current_sector++;
-
-    //         XGDLog().print_progress(prog_processed_ += read_size * Xiso::SECTOR_SIZE, prog_total_);
-    //     }
-    // } else {
-        uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
-        uint64_t current_write_sector = node->start_sector;
-        std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
-
-        while (bytes_remaining > 0) 
+        out_files_[remapped.file_index]->write(buffer.data(), read_size);
+        if (out_files_[remapped.file_index]->fail()) 
         {
-            auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
-
-            in_file.read(buffer.data(), read_size);
-
-            remapped = remap_sector(current_write_sector);
-            padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-            out_files_[remapped.file_index]->write(buffer.data(), read_size);
-            if (out_files_[remapped.file_index]->fail()) 
-            {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            current_write_sector++;
-            bytes_remaining -= read_size;
-
-            XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
+            throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
-    // }
+
+        current_write_sector++;
+        bytes_remaining -= read_size;
+
+        XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
+    }
 
     in_file.close();
     current_out_file_ = remapped.file_index;
@@ -712,6 +645,8 @@ void GoDWriter::write_xiso_header(AvlTree& avl_tree)
 
 void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, const std::vector<std::filesystem::path>& out_part_paths, const SHA1Hash& final_mht_hash) 
 {
+    XGDLog() << "Writing Live header" << XGDLog::Endl;
+
     std::stringstream out_str;
     out_str.write(reinterpret_cast<const char*>(EMPTY_LIVE_HEADER), EMPTY_LIVE_HEADER_SIZE);
 

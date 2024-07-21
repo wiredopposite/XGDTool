@@ -2,7 +2,7 @@
 
 #include "XGD.h"
 #include "Common/Utils.h"
-#include "ExeTool/ExeTool.h"
+#include "Executable/ExeTool.h"
 
 ExeTool::ExeTool(const std::filesystem::path& in_exe_path) 
 {

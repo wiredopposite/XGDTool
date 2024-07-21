@@ -9,6 +9,7 @@
 #include "ImageReader/ImageReader.h"
 #include "ImageWriter/ImageWriter.h"
 #include "TitleHelper/TitleHelper.h"
+#include "Executable/AttachXbeTool.h"
 
 struct InputInfo 
 {
@@ -351,6 +352,7 @@ int main(int argc, char** argv)
 
             std::unique_ptr<ImageWriter> image_writer{nullptr};
             std::unique_ptr<ImageExtractor> image_extractor{nullptr};
+            std::unique_ptr<AttachXbeTool> attach_xbe_tool{nullptr};
 
             switch (out_file_type)
             {
@@ -359,11 +361,16 @@ int main(int argc, char** argv)
                     {
                         throw XGDException(ErrCode::MISC, HERE(), "Input format not supported for extraction.");
                     }
+                    
                     image_extractor = std::make_unique<ImageExtractor>(image_reader, output_settings.allowed_media_patch);
                     image_extractor->extract(out_path);
+
                     final_out_paths = { out_path };
                     break;
                 case FileType::XBE:
+                    attach_xbe_tool = std::make_unique<AttachXbeTool>(*title_helper);
+                    attach_xbe_tool->generate_attach_xbe(out_path);
+
                     final_out_paths = { out_path };
                     break;
                 default:
@@ -375,7 +382,14 @@ int main(int argc, char** argv)
                     {
                         image_writer = WriterFactory::create(out_file_type, input_info.in_paths.front(), title_helper, output_settings);
                     }
+
                     final_out_paths = image_writer->convert(out_path);
+
+                    if (output_settings.attach_xbe) 
+                    {
+                        attach_xbe_tool = std::make_unique<AttachXbeTool>(*title_helper);
+                        attach_xbe_tool->generate_attach_xbe(out_path.parent_path() / "default.xbe");
+                    }
                     break;
 
             }

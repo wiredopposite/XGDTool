@@ -8,8 +8,8 @@ endfunction()
 set(RPK_DIR ${CMAKE_SOURCE_DIR}/external/Repackinator)
 set(ATTACH_XBE_FILE ${RPK_DIR}/attach.xbe)
 
-set(HEADER_DIR ${CMAKE_SOURCE_DIR}/src/generated)
-set(ATTACH_XBE_HEADER ${HEADER_DIR}/attach_xbe.h)
+set(HEADER_DIR ${CMAKE_SOURCE_DIR}/src/Executable)
+set(ATTACH_XBE_HEADER ${HEADER_DIR}/AttachXbe.h)
 
 if (NOT EXISTS ${HEADER_DIR})
     file(MAKE_DIRECTORY ${HEADER_DIR})

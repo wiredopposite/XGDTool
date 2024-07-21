@@ -9,7 +9,7 @@
 #include "XGD.h"
 #include "Common/StringUtils.h"
 #include "ImageReader/ImageReader.h"
-#include "ExeTool/ExeTool.h"
+#include "Executable/ExeTool.h"
 #include "Formats/Xex.h"
 #include "Formats/Xbe.h"
 

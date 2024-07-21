@@ -257,6 +257,7 @@ bool TitleHelper::set_x360_titles_online(std::unique_ptr<ExeTool>& exe_tool)
     iso_name_        = iso_name_.substr(0, 36);
     folder_name_     = folder_name_.substr(0, 42);
     god_folder_name_ = god_folder_name_.substr(0, 31) + " [" + StringUtils::uint32_to_hex_string(title_id_) + "]";
+
     unique_name_     = create_unique_name(exe_tool->xex_cert());
     utf16_title_name_ = StringUtils::utf8_to_utf16(title_name_);
 
@@ -389,6 +390,8 @@ size_t TitleHelper::unity_png_write_callback(void* contents, size_t size, size_t
 
 bool TitleHelper::unity_get_title_icon(uint32_t title_id, std::vector<char>& icon_data) 
 {
+    XGDLog(Debug) << "Downloading icon for title ID: " << StringUtils::uint32_to_hex_string(title_id) << XGDLog::Endl;
+
     CURL* curl;
     CURLcode res;
     std::string url = "http://xboxunity.net/Resources/Lib/Icon.php?tid=" + StringUtils::uint32_to_hex_string(title_id);

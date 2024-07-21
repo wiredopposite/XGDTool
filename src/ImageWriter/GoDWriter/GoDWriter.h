@@ -14,7 +14,6 @@
 #include <openssl/sha.h>
 
 #include "XGD.h"
-#include "ExeTool/ExeTool.h"
 #include "Formats/GoD.h"
 #include "AvlTree/AvlTree.h"
 #include "ImageReader/ImageReader.h"

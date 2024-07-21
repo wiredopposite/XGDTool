@@ -1,4 +1,4 @@
-#include "ExeTool/ExeTool.h"
+#include "Executable/ExeTool.h"
 #include "Common/StringUtils.h"
 #include "ImageExtractor/ImageExtractor.h"
 
@@ -119,7 +119,7 @@ void ImageExtractor::extract_xbe_allowed_media_patch(const Xiso::DirectoryEntry&
     {
         if (current_sector == cert_sector) 
         {
-            size_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE * 2);
+            uint32_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE * 2);
             std::vector<char> cert_buffer(Xiso::SECTOR_SIZE * 2);
 
             image_reader_->read_sector(current_sector, cert_buffer.data());
@@ -146,7 +146,7 @@ void ImageExtractor::extract_xbe_allowed_media_patch(const Xiso::DirectoryEntry&
             continue;
         } 
 
-        size_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
+        uint32_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
 
         image_reader_->read_sector(current_sector, buffer.data());
 
