@@ -25,7 +25,7 @@ void TitleHelper::initialize()
 
     if (image_reader_)
     {
-        exe_tool = std::make_unique<ExeTool>(*image_reader_, image_reader_->executable_entry().path);   
+        exe_tool = std::make_unique<ExeTool>(*image_reader_.get(), image_reader_->executable_entry().path); 
     }
     else
     {
@@ -52,12 +52,13 @@ void TitleHelper::initialize()
     xex_cert_ = exe_tool->xex_cert();
     xbe_cert_ = exe_tool->xbe_cert();
     title_id_ = exe_tool->title_id();
+    platform_ = exe_tool->platform();
 
     bool initialized = false;   
 
     if (!offline_mode_ && internet_connected()) 
     {
-        switch (exe_tool->platform()) 
+        switch (platform_) 
         {
             case Platform::X360:
                 initialized = set_x360_titles_online(exe_tool);
@@ -74,6 +75,8 @@ void TitleHelper::initialize()
     {
         initialize_offline(exe_tool);
     }
+
+    XGDLog(Debug) << "Title information retrieved for: " << title_name_ << XGDLog::Endl;
 }
 
 void TitleHelper::initialize_offline(std::unique_ptr<ExeTool>& exe_tool) 

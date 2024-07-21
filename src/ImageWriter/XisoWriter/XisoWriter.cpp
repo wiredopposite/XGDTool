@@ -5,52 +5,56 @@
 #include "ExeTool/ExeTool.h"
 #include "AvlTree/AvlTree.h"
 
-XisoWriter::XisoWriter(std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, const bool split, const bool allowed_media_patch) 
+XisoWriter::XisoWriter(std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, const bool split) 
     :   image_reader_(image_reader), 
         scrub_type_(scrub_type), 
-        allowed_media_patch_(allowed_media_patch), 
-        split_(split) {
-
+        split_(split) 
+{
     if (scrub_type_ == ScrubType::FULL) {
         avl_tree_ = std::make_unique<AvlTree>(image_reader_->name(), image_reader_->directory_entries());
     }
 }
 
-XisoWriter::XisoWriter(const std::filesystem::path& in_dir_path, const bool split, const bool allowed_media_patch) 
-    :   split_(split), 
-        allowed_media_patch_(allowed_media_patch) {
-
+XisoWriter::XisoWriter(const std::filesystem::path& in_dir_path, const bool split) 
+    :   split_(split) 
+{
     avl_tree_ = std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path);
 }
 
-XisoWriter::~XisoWriter() {
+XisoWriter::~XisoWriter() 
+{
     if (out_file_.is_open()) {
         out_file_.close();
     }
 }
 
-std::vector<std::filesystem::path> XisoWriter::convert(const std::filesystem::path& out_xiso_path) {
+std::vector<std::filesystem::path> XisoWriter::convert(const std::filesystem::path& out_xiso_path) 
+{
     create_directory(out_xiso_path.parent_path());
     
-    if (avl_tree_) {
+    if (avl_tree_) 
+    {
         return convert_to_xiso_from_avl(out_xiso_path);
     }
     return convert_to_xiso(out_xiso_path, scrub_type_ == ScrubType::PARTIAL);
 }
 
-std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesystem::path& out_xiso_path, const bool scrub) {
+std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesystem::path& out_xiso_path, const bool scrub) 
+{
     ImageReader& image_reader = *image_reader_;
     uint32_t sector_offset = static_cast<uint32_t>(image_reader.image_offset() / Xiso::SECTOR_SIZE);
     uint32_t end_sector = image_reader.total_sectors();
     const std::unordered_set<uint32_t>* data_sectors;
 
-    if (scrub) {
+    if (scrub) 
+    {
         data_sectors = &image_reader.data_sectors();
         end_sector = std::min(end_sector, image_reader.max_data_sector() + 1);
     }
 
     out_file_ = split::ofstream(out_xiso_path, split_ ? Xiso::SPLIT_MARGIN : UINT64_MAX);
-    if (!out_file_.is_open()) {
+    if (!out_file_.is_open()) 
+    {
         throw XGDException(ErrCode::FILE_OPEN, HERE(), out_xiso_path.string());
     }
 
@@ -58,21 +62,27 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
 
     XGDLog() << "Writing XISO" << XGDLog::Endl;
 
-    for (uint32_t i = sector_offset; i < end_sector; i++) {
+    for (uint32_t i = sector_offset; i < end_sector; i++) 
+    {
         bool write_sector = true;
 
-        if (scrub && image_reader.platform() == Platform::OGX) {
+        if (scrub && image_reader.platform() == Platform::OGX) 
+        {
             write_sector = data_sectors->find(i) != data_sectors->end();
         }
 
-        if (write_sector) {
+        if (write_sector) 
+        {
             image_reader.read_sector(i, buffer.data());
-        } else {
+        } 
+        else 
+        {
             std::fill(buffer.begin(), buffer.end(), 0);
         }
 
         out_file_.write(buffer.data(), Xiso::SECTOR_SIZE);
-        if (out_file_.fail()) {
+        if (out_file_.fail()) 
+        {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write sector to output file");
         }
 
@@ -83,12 +93,14 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
     return out_file_.paths();
 }
 
-std::vector<std::filesystem::path> XisoWriter::convert_to_xiso_from_avl(const std::filesystem::path& out_xiso_path) {
+std::vector<std::filesystem::path> XisoWriter::convert_to_xiso_from_avl(const std::filesystem::path& out_xiso_path) 
+{
     total_bytes_ = avl_tree_->total_bytes();
     bytes_processed_ = 0;
 
     out_file_ = split::ofstream(out_xiso_path, split_ ? Xiso::SPLIT_MARGIN : UINT64_MAX);
-    if (!out_file_.is_open()) {
+    if (!out_file_.is_open()) 
+    {
         throw XGDException(ErrCode::FILE_OPEN, HERE(), out_xiso_path.string());
     }
 
@@ -98,12 +110,15 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso_from_avl(const st
 
     out_file_.seekp(avl_tree_->root()->start_sector * Xiso::SECTOR_SIZE, std::ios::beg);
 
-    if (image_reader_) {
+    if (image_reader_) 
+    {
         AvlTree::traverse(avl_tree_->root(), AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
             write_tree(node, static_cast<ImageReader*>(context), depth);
         }, image_reader_.get(), 0);  
         
-    } else {
+    } 
+    else 
+    {
         AvlTree::traverse(avl_tree_->root(), AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
             write_tree(node, nullptr, depth);
         }, nullptr, 0);
@@ -116,18 +131,24 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso_from_avl(const st
     return out_file_.paths();
 }
 
-void XisoWriter::write_tree(AvlTree::Node* node, ImageReader* image_reader, int depth) {
-    if (!node->subdirectory) {
+void XisoWriter::write_tree(AvlTree::Node* node, ImageReader* image_reader, int depth) 
+{
+    if (!node->subdirectory) 
+    {
         return;
     }
 
-    if (node->subdirectory != EMPTY_SUBDIRECTORY) {
-        if (image_reader) {
+    if (node->subdirectory != EMPTY_SUBDIRECTORY) 
+    {
+        if (image_reader) 
+        {
             AvlTree::traverse(node->subdirectory, AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
                 write_file(node, static_cast<ImageReader*>(context), depth);
             }, image_reader, 0);
 
-        } else {
+        } 
+        else 
+        {
             AvlTree::traverse(node->subdirectory, AvlTree::TraversalMethod::PREFIX, [this](AvlTree::Node* node, void* context, int depth) {
                 write_file_dir(node, nullptr, depth);
             }, nullptr, 0);
@@ -144,18 +165,22 @@ void XisoWriter::write_tree(AvlTree::Node* node, ImageReader* image_reader, int 
         }, nullptr, 0);
 
         IOUtils::pad_to_modulus(out_file_, Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
-    } else {
+    } 
+    else 
+    {
         std::vector<char> pad_sector(Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
         out_file_.seekp(node->start_sector * Xiso::SECTOR_SIZE, std::ios::beg);
         out_file_.write(pad_sector.data(), Xiso::SECTOR_SIZE);
 
-        if (out_file_.fail()) {
+        if (out_file_.fail()) 
+        {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write padding sector");
         }
     }
 }
 
-void XisoWriter::write_entry(AvlTree::Node* node, void* context, int depth) {
+void XisoWriter::write_entry(AvlTree::Node* node, void* context, int depth) 
+{
     Xiso::DirectoryEntry::Header header;
     header.left_offset  = node->left_child ? static_cast<uint16_t>(node->left_child->offset / sizeof(uint32_t)) : 0;
     header.right_offset = node->right_child ? static_cast<uint16_t>(node->right_child->offset / sizeof(uint32_t)) : 0;
@@ -173,7 +198,8 @@ void XisoWriter::write_entry(AvlTree::Node* node, void* context, int depth) {
     XGDLog() << "Writing at offset: " << out_file_.tellp() + padding_length << " dir start: " << node->directory_start << " offset: " << node->offset << " combined: " << node->directory_start + node->offset << XGDLog::Endl;
     std::vector<char> padding(padding_length, Xiso::PAD_BYTE);
 
-    if (sizeof(header) != sizeof(Xiso::DirectoryEntry::Header)) {
+    if (sizeof(header) != sizeof(Xiso::DirectoryEntry::Header)) 
+    {
         throw XGDException(ErrCode::MISC, HERE(), "Header size mismatch");
     }
 
@@ -181,224 +207,128 @@ void XisoWriter::write_entry(AvlTree::Node* node, void* context, int depth) {
     out_file_.write(reinterpret_cast<char*>(&header), sizeof(Xiso::DirectoryEntry::Header));
     out_file_.write(node->filename.c_str(), header.name_length);
 
-    if (out_file_.fail()) {
+    if (out_file_.fail()) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write directory entry for: " + node->filename);
     }
 }
 
-void XisoWriter::write_file(AvlTree::Node* node, ImageReader* image_reader, int depth) {
-    if (node->subdirectory) {
+void XisoWriter::write_file(AvlTree::Node* node, ImageReader* image_reader, int depth) 
+{
+    if (node->subdirectory) 
+    {
         return;
     }
 
     out_file_.seekp(node->start_sector * Xiso::SECTOR_SIZE, std::ios::beg);
-    if (out_file_.fail() || out_file_.tellp() != (node->start_sector * Xiso::SECTOR_SIZE)) {
+    if (out_file_.fail() || out_file_.tellp() != (node->start_sector * Xiso::SECTOR_SIZE)) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to seek to file sector: " + node->filename);
     }
 
-    if (allowed_media_patch_ && node->filename.size() > 4 && StringUtils::case_insensitive_search(node->filename, ".xbe")) {
-        ExeTool exe_tool(*image_reader, node->path);
-        Xbe::Cert xbe_cert = exe_tool.xbe_cert();
-        exe_tool.patch_allowed_media(xbe_cert);
+    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    uint64_t read_position = image_reader->image_offset() + (node->old_start_sector * static_cast<uint64_t>(Xiso::SECTOR_SIZE));
+    std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
 
-        auto read_position = exe_tool.exe_offset();
-        auto bytes_remaining = exe_tool.cert_offset();
+    auto start_pos = out_file_.tellp();
 
-        std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
+    while (bytes_remaining > 0) 
+    {
+        uint32_t bytes_to_read = std::min(bytes_remaining, XGD::BUFFER_SIZE);
 
-        while (bytes_remaining > 0) {
-            auto read_size = std::min(bytes_remaining, static_cast<uint64_t>(XGD::BUFFER_SIZE));
+        image_reader->read_bytes(read_position, bytes_to_read, buffer.data());
 
-            image_reader->read_bytes(read_position, read_size, buffer.data());
-
-            out_file_.write(buffer.data(), read_size);
-            if (out_file_.fail()) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            bytes_remaining -= read_size;
-            read_position += read_size;
-
-            XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
-        }
-
-        out_file_.write(reinterpret_cast<char*>(&xbe_cert), sizeof(Xbe::Cert));
-        if (out_file_.fail()) {
+        out_file_.write(buffer.data(), bytes_to_read);
+        if (out_file_.fail() || out_file_.tellp() != start_pos + bytes_to_read) 
+        {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
 
-        read_position = exe_tool.exe_offset() + exe_tool.cert_offset() + sizeof(Xbe::Cert);
-        bytes_remaining = node->file_size - exe_tool.cert_offset() - sizeof(Xbe::Cert);
+        start_pos += bytes_to_read;
+        bytes_remaining -= bytes_to_read;
+        read_position += bytes_to_read;
 
-        XGDLog().print_progress(bytes_processed_ += sizeof(Xbe::Cert), total_bytes_);
-
-        while (bytes_remaining > 0) {
-            auto read_size = std::min(bytes_remaining, static_cast<uint64_t>(XGD::BUFFER_SIZE));
-
-            image_reader->read_bytes(read_position, read_size, buffer.data());
-
-            out_file_.write(buffer.data(), read_size);
-            if (out_file_.fail()) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            bytes_remaining -= read_size;
-            read_position += read_size;
-
-            XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
-        }
-    } else {
-        uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
-        uint64_t read_position = image_reader->image_offset() + (node->old_start_sector * static_cast<uint64_t>(Xiso::SECTOR_SIZE));
-        std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
-
-        auto start_pos = out_file_.tellp();
-
-        while (bytes_remaining > 0) {
-            uint32_t bytes_to_read = std::min(bytes_remaining, XGD::BUFFER_SIZE);
-
-            image_reader->read_bytes(read_position, bytes_to_read, buffer.data());
-
-            out_file_.write(buffer.data(), bytes_to_read);
-            if (out_file_.fail() || out_file_.tellp() != start_pos + bytes_to_read) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            start_pos += bytes_to_read;
-            bytes_remaining -= bytes_to_read;
-            read_position += bytes_to_read;
-
-            XGDLog().print_progress(bytes_processed_ += bytes_to_read, total_bytes_);
-        }
+        XGDLog().print_progress(bytes_processed_ += bytes_to_read, total_bytes_);
     }
 
-    if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file_.tellp()) {
+    if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file_.tellp()) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "File write size mismatch: " + node->filename);
     }
 
-    if (out_file_.tellp() % Xiso::SECTOR_SIZE) {
+    if (out_file_.tellp() % Xiso::SECTOR_SIZE) 
+    {
         IOUtils::pad_to_modulus(out_file_, Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
     }
 }
 
-void XisoWriter::write_file_dir(AvlTree::Node* node, void* context, int depth) {
-    if (node->subdirectory) {
+void XisoWriter::write_file_dir(AvlTree::Node* node, void* context, int depth) 
+{
+    if (node->subdirectory) 
+    {
         return;
     }
 
     out_file_.seekp(node->start_sector * Xiso::SECTOR_SIZE, std::ios::beg);
-    if (out_file_.fail() || out_file_.tellp() != (node->start_sector * Xiso::SECTOR_SIZE)) {
+    if (out_file_.fail() || out_file_.tellp() != (node->start_sector * Xiso::SECTOR_SIZE)) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to seek to file sector: " + node->filename);
     }
 
-    if (allowed_media_patch_ && node->filename.size() > 4 && StringUtils::case_insensitive_search(node->filename, ".xbe")) {
-        ExeTool exe_tool(node->path);
-        Xbe::Cert xbe_cert = exe_tool.xbe_cert();
-        exe_tool.patch_allowed_media(xbe_cert);
+    std::ifstream in_file(node->path, std::ios::binary);
+    if (!in_file.is_open()) 
+    {
+        throw XGDException(ErrCode::FILE_OPEN, HERE(), node->path.string());
+    }
 
-        auto bytes_remaining = exe_tool.cert_offset();
-        std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
+    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
 
-        std::ifstream in_file(node->path, std::ios::binary);
-        if (!in_file.is_open()) {
-            throw XGDException(ErrCode::FILE_OPEN, HERE(), node->path.string());
+    while (bytes_remaining > 0) 
+    {
+        uint32_t bytes_to_write = std::min(bytes_remaining, XGD::BUFFER_SIZE);
+
+        in_file.read(buffer.data(), bytes_to_write);
+        if (in_file.fail()) 
+        {
+            throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->filename);
         }
 
-        while (bytes_remaining > 0) {
-            auto read_size = std::min(bytes_remaining, static_cast<uint64_t>(XGD::BUFFER_SIZE));
-
-            in_file.read(buffer.data(), read_size);
-            if (in_file.fail()) {
-                throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->filename);
-            }
-
-            out_file_.write(buffer.data(), read_size);
-            if (out_file_.fail()) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            bytes_remaining -= read_size;
-
-            XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
-        }
-
-        out_file_.write(reinterpret_cast<char*>(&xbe_cert), sizeof(Xbe::Cert));
-        if (out_file_.fail()) {
+        out_file_.write(buffer.data(), bytes_to_write);
+        if (out_file_.fail()) 
+        {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
 
-        XGDLog().print_progress(bytes_processed_ += sizeof(Xbe::Cert), total_bytes_);
+        bytes_remaining -= bytes_to_write;
 
-        bytes_remaining = node->file_size - exe_tool.cert_offset() - sizeof(Xbe::Cert);
-
-        while (bytes_remaining > 0) {
-            auto read_size = std::min(bytes_remaining, static_cast<uint64_t>(XGD::BUFFER_SIZE));
-
-            in_file.read(buffer.data(), read_size);
-            if (in_file.fail()) {
-                throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->filename);
-            }
-
-            out_file_.write(buffer.data(), read_size);
-            if (out_file_.fail()) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            bytes_remaining -= read_size;
-
-            XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
-        }
-
-        in_file.close();
-
-    } else {
-        std::ifstream in_file(node->path, std::ios::binary);
-        if (!in_file.is_open()) {
-            throw XGDException(ErrCode::FILE_OPEN, HERE(), node->path.string());
-        }
-
-        uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
-        std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
-
-        while (bytes_remaining > 0) {
-            uint32_t bytes_to_write = std::min(bytes_remaining, XGD::BUFFER_SIZE);
-
-            in_file.read(buffer.data(), bytes_to_write);
-            if (in_file.fail()) {
-                throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->filename);
-            }
-
-            out_file_.write(buffer.data(), bytes_to_write);
-            if (out_file_.fail()) {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            bytes_remaining -= bytes_to_write;
-
-            XGDLog().print_progress(bytes_processed_ += bytes_to_write, total_bytes_);
-        }
-
-        in_file.close();
+        XGDLog().print_progress(bytes_processed_ += bytes_to_write, total_bytes_);
     }
 
-    if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file_.tellp()) {
+    in_file.close();
+
+    if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file_.tellp()) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "File write size mismatch, possible overflow issue: " + node->filename);
     }
 
-    if (out_file_.tellp() % Xiso::SECTOR_SIZE) {
+    if (out_file_.tellp() % Xiso::SECTOR_SIZE) 
+    {
         uint32_t padding_length = Xiso::SECTOR_SIZE - (out_file_.tellp() % Xiso::SECTOR_SIZE);
         std::vector<char> pad_sector(padding_length, Xiso::PAD_BYTE);
         out_file_.write(pad_sector.data(), padding_length);
     }
 }
 
-void XisoWriter::write_header_from_avl() {
+void XisoWriter::write_header_from_avl() 
+{
     Xiso::Header header(static_cast<uint32_t>(avl_tree_->root()->start_sector), 
                         static_cast<uint32_t>(avl_tree_->root()->file_size), 
                         static_cast<uint32_t>(avl_tree_->out_iso_size() / Xiso::SECTOR_SIZE));
 
     out_file_.write(reinterpret_cast<char*>(&header), sizeof(Xiso::Header));
-    if (out_file_.fail()) {
+    if (out_file_.fail()) 
+    {
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write header to output file");
     }
 }

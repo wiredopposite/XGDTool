@@ -15,46 +15,52 @@ void ImageWriter::create_directory(const std::filesystem::path& dir_path)
         } 
         catch (const std::filesystem::filesystem_error& e) 
         {
-            XGDException(ErrCode::FS_MKDIR, HERE(), e.what());
+            throw XGDException(ErrCode::FS_MKDIR, HERE(), e.what());
         }
     }
 }
 
 namespace WriterFactory 
 {
-    std::unique_ptr<ImageWriter> create(FileType out_file_type, std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, Settings settings) 
+    std::unique_ptr<ImageWriter> create(FileType out_file_type, 
+                                        std::shared_ptr<ImageReader> image_reader, 
+                                        std::unique_ptr<TitleHelper>& title_helper, 
+                                        OutputSettings settings) 
     {
         switch (out_file_type) 
         {
             case FileType::ISO:
-                return std::make_unique<XisoWriter>(image_reader, settings.scrub_type, settings.split, settings.allowed_media_patch);
+                return std::make_unique<XisoWriter>(image_reader, settings.scrub_type, settings.split);
             case FileType::ZAR:
                 return std::make_unique<ZARWriter>(image_reader);
             case FileType::GoD:
-                return std::make_unique<GoDWriter>(image_reader, title_helper, settings.scrub_type, settings.allowed_media_patch);
+                return std::make_unique<GoDWriter>(image_reader, title_helper, settings.scrub_type);
             case FileType::CSO:
-                return std::make_unique<CSOWriter>(image_reader, settings.scrub_type, settings.allowed_media_patch);
+                return std::make_unique<CSOWriter>(image_reader, settings.scrub_type);
             case FileType::CCI:
-                return std::make_unique<CCIWriter>(image_reader, settings.scrub_type, settings.allowed_media_patch);
+                return std::make_unique<CCIWriter>(image_reader, settings.scrub_type);
             default:
                 throw std::runtime_error("Unknown file type");
         }
     }
 
-    std::unique_ptr<ImageWriter> create(FileType out_file_type, const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper, Settings settings) 
+    std::unique_ptr<ImageWriter> create(FileType out_file_type, 
+                                        const std::filesystem::path& in_dir_path, 
+                                        std::unique_ptr<TitleHelper>& title_helper, 
+                                        OutputSettings settings) 
     {
         switch (out_file_type) 
         {
             case FileType::ISO:
-                return std::make_unique<XisoWriter>(in_dir_path, settings.split, settings.allowed_media_patch);
+                return std::make_unique<XisoWriter>(in_dir_path, settings.split);
             case FileType::ZAR:
                 return std::make_unique<ZARWriter>(in_dir_path);
             case FileType::GoD:
-                return std::make_unique<GoDWriter>(in_dir_path, title_helper, settings.allowed_media_patch);
+                return std::make_unique<GoDWriter>(in_dir_path, title_helper);
             case FileType::CSO:
-                return std::make_unique<CSOWriter>(in_dir_path, settings.allowed_media_patch);
+                return std::make_unique<CSOWriter>(in_dir_path);
             case FileType::CCI:
-                return std::make_unique<CCIWriter>(in_dir_path, settings.allowed_media_patch);
+                return std::make_unique<CCIWriter>(in_dir_path);
             default:
                 throw std::runtime_error("Unknown file type");
         }

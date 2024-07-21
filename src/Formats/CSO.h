@@ -23,6 +23,7 @@ struct CSO {
         uint8_t index_alignment     {CSO::INDEX_ALIGNMENT};
         uint16_t reserved           {0};
 
+        Header() = default;
         Header(uint64_t in_uncompressed_size) 
             : uncompressed_size(in_uncompressed_size) {}
     };

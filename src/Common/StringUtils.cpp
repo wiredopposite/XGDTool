@@ -9,9 +9,9 @@
 
 namespace StringUtils {
 
-const std::unordered_set<char> bad_chars = {
-    '*', '?', ':', '"', '\'', '<', '>', '|', ';', '&', '#', '$', '%', '@', '!', '^', '(', ')', '[', ']', '{', '}', '\\', '=', '+', ','
-};
+// const std::unordered_set<char> bad_chars = {
+//     '*', '?', ':', '"', '\'', '<', '>', '|', ';', '&', '#', '$', '%', '@', '!', '^', '(', ')', '[', ']', '{', '}', '\\', '=', '+', ','
+// };
 
 const std::unordered_set<std::string> bad_names = {
     "CON", "PRN", "AUX", "NUL",
@@ -21,12 +21,12 @@ const std::unordered_set<std::string> bad_names = {
 
 bool safe_string(const std::string &string) {
     bool safe = true;
-    for (const char &c : string) {
-        if (bad_chars.find(c) != bad_chars.end()) {
-            safe = false;
-            break;
-        }
-    }
+    // for (const char &c : string) {
+    //     if (bad_chars.find(c) != bad_chars.end()) {
+    //         safe = false;
+    //         break;
+    //     }
+    // }
     for (const std::string &name : bad_names) {
         if (string == name) {
             safe = false;

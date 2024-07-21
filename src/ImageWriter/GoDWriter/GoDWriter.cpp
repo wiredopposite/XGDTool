@@ -1,15 +1,13 @@
 #include <cctype>
 
-#include "UnityTool/UnityTool.h"
 #include "Common/Utils.h"
 #include "ImageWriter/GoDWriter/GoD_live_header.h"
 #include "ImageWriter/GoDWriter/GoDWriter.h"
 
-GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type, const bool allowed_media_patch)
+GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type)
     :   image_reader_(image_reader),
         title_helper_(title_helper),
-        scrub_type_(scrub_type),
-        allowed_media_patch_(allowed_media_patch) 
+        scrub_type_(scrub_type)
 {
     if (scrub_type_ == ScrubType::FULL) 
     {
@@ -17,10 +15,9 @@ GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<
     }
 }
 
-GoDWriter::GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper, const bool allowed_media_patch)
+GoDWriter::GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper)
     :   in_dir_path_(in_dir_path),
         title_helper_(title_helper),
-        allowed_media_patch_(allowed_media_patch),
         avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) {}
 
 GoDWriter::~GoDWriter() 
@@ -540,105 +537,31 @@ void GoDWriter::write_file(AvlTree::Node* node, ImageReader* reader, int depth)
     Remap remapped = remap_sector(node->start_sector);
     padded_seek(out_files_[remapped.file_index], remapped.offset);
 
-    if (allowed_media_patch_ && node->filename.size() > 4 && StringUtils::case_insensitive_search(node->filename, ".xbe")) 
+    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    uint64_t read_position = reader->image_offset() + (node->old_start_sector * Xiso::SECTOR_SIZE);
+    uint64_t current_write_sector = node->start_sector;
+    std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
+
+    while (bytes_remaining > 0) 
     {
-        ExeTool exe_tool(*reader, node->path);
-        Xbe::Cert xbe_cert = exe_tool.xbe_cert();
-        exe_tool.patch_allowed_media(xbe_cert);
+        auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
 
-        auto cert_offset = exe_tool.exe_offset() + exe_tool.cert_offset();
-        auto cert_pos_in_sector = cert_offset % Xiso::SECTOR_SIZE;
-        auto current_read_sector = static_cast<uint32_t>((reader->image_offset() / Xiso::SECTOR_SIZE) + node->start_sector);
-        auto cert_sector = current_read_sector + (cert_offset / Xiso::SECTOR_SIZE);
-        auto bytes_remaining = static_cast<uint32_t>(node->file_size);
-        std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
+        reader->read_bytes(read_position, read_size, buffer.data());
 
-        while (bytes_remaining > 0) 
+        remapped = remap_sector(current_write_sector);
+        padded_seek(out_files_[remapped.file_index], remapped.offset);
+
+        out_files_[remapped.file_index]->write(buffer.data(), read_size);
+        if (out_files_[remapped.file_index]->fail()) 
         {
-            if (current_read_sector == cert_sector) 
-            {
-                auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE * 2);
-                std::vector<char> cert_buffer(Xiso::SECTOR_SIZE * 2);
-
-                reader->read_sector(current_read_sector, cert_buffer.data());
-                reader->read_sector(current_read_sector + 1, cert_buffer.data() + Xiso::SECTOR_SIZE);
-
-                std::memcpy(cert_buffer.data() + cert_pos_in_sector, &xbe_cert, sizeof(Xbe::Cert));
-
-                remapped = remap_sector(current_read_sector);
-                padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-                auto write_size = std::min(read_size, Xiso::SECTOR_SIZE);
-                out_files_[remapped.file_index]->write(cert_buffer.data(), write_size);
-
-                current_read_sector++;
-
-                if (write_size < read_size) 
-                {
-                    remapped = remap_sector(current_read_sector + 1);
-                    padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-                    out_files_[remapped.file_index]->write(cert_buffer.data() + write_size, read_size - write_size);
-                    current_read_sector++;
-                }
-
-                if (out_files_[remapped.file_index]->fail()) 
-                {
-                    throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-                }
-
-                bytes_remaining -= read_size;
-
-                XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
-                continue;
-            }
-
-            auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
-
-            reader->read_sector(current_read_sector, buffer.data());
-
-            remapped = remap_sector(current_read_sector);
-            padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-            out_files_[remapped.file_index]->write(buffer.data(), read_size * Xiso::SECTOR_SIZE);
-            if (out_files_[remapped.file_index]->fail()) 
-            {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            current_read_sector++;
-
-            XGDLog().print_progress(prog_processed_ += read_size * Xiso::SECTOR_SIZE, prog_total_);
+            throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
-    } 
-    else 
-    {
-        uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
-        uint64_t read_position = reader->image_offset() + (node->old_start_sector * Xiso::SECTOR_SIZE);
-        uint64_t current_write_sector = node->start_sector;
-        std::vector<char> buffer(Xiso::SECTOR_SIZE, 0);
 
-        while (bytes_remaining > 0) 
-        {
-            auto read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
+        current_write_sector++;
+        bytes_remaining -= read_size;
+        read_position += read_size;
 
-            reader->read_bytes(read_position, read_size, buffer.data());
-
-            remapped = remap_sector(current_write_sector);
-            padded_seek(out_files_[remapped.file_index], remapped.offset);
-
-            out_files_[remapped.file_index]->write(buffer.data(), read_size);
-            if (out_files_[remapped.file_index]->fail()) 
-            {
-                throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
-            }
-
-            current_write_sector++;
-            bytes_remaining -= read_size;
-            read_position += read_size;
-
-            XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
-        }
+        XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
     }
 
     current_out_file_ = remapped.file_index;

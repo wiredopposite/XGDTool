@@ -8,12 +8,13 @@
 #include "Formats/Xex.h"
 #include "Formats/Xbe.h"
 
-class ExeTool {
+class ExeTool 
+{
 public:
     ExeTool(const std::filesystem::path& in_exe_path);
     ExeTool(ImageReader& image_reader, const std::filesystem::path& entry_path);
 
-    ~ExeTool() {};
+    ~ExeTool() = default;
 
     Platform platform() { return platform_; };
 

@@ -88,27 +88,25 @@ namespace Xbe {
 
 #pragma pack(pop)
 
-    struct AllowedMedia {
-        static constexpr uint32_t HARD_DISK		= 0x00000001;
-        static constexpr uint32_t XGD1			= 0x00000002;
-        static constexpr uint32_t DVD_CD        = 0x00000004;
-        static constexpr uint32_t CD			= 0x00000008;
-        static constexpr uint32_t DVD_5_RO	    = 0x00000010;
-        static constexpr uint32_t DVD_9_RO	    = 0x00000020;
-        static constexpr uint32_t DVD_5_RW	    = 0x00000040;
-        static constexpr uint32_t DVD_9_RW	    = 0x00000080;
-        static constexpr uint32_t DONGLE	    = 0x00000100;
-        static constexpr uint32_t MEDIA_BOARD   = 0x00000200;
-        static constexpr uint32_t NONSECURE_HARD_DISK	= 0x40000000;
-        static constexpr uint32_t NONSECURE_MODE		= 0x80000000;
+    namespace AllowedMedia {
+        constexpr uint32_t HARD_DISK		= 0x00000001;
+        constexpr uint32_t XGD1			= 0x00000002;
+        constexpr uint32_t DVD_CD        = 0x00000004;
+        constexpr uint32_t CD			= 0x00000008;
+        constexpr uint32_t DVD_5_RO	    = 0x00000010;
+        constexpr uint32_t DVD_9_RO	    = 0x00000020;
+        constexpr uint32_t DVD_5_RW	    = 0x00000040;
+        constexpr uint32_t DVD_9_RW	    = 0x00000080;
+        constexpr uint32_t DONGLE	    = 0x00000100;
+        constexpr uint32_t MEDIA_BOARD   = 0x00000200;
+        constexpr uint32_t NONSECURE_HARD_DISK	= 0x40000000;
+        constexpr uint32_t NONSECURE_MODE		= 0x80000000;
 
-        static constexpr uint32_t ALL = HARD_DISK | XGD1 | DVD_CD | CD | DVD_5_RO | DVD_9_RO | DVD_5_RW | DVD_9_RW | DONGLE | MEDIA_BOARD | NONSECURE_HARD_DISK | NONSECURE_MODE;
-
-        // static constexpr uint32_t MEDIA_MASK    = 0x00FFFFFF;
+        constexpr uint32_t MEDIA_MASK    = 0x00FFFFFF;
     };
 
-    static constexpr char     MAGIC[] = "XBEH";
-    static constexpr int      MAGIC_LEN  = 4;
+    constexpr char MAGIC[] = "XBEH";
+    constexpr int  MAGIC_LEN  = 4;
 
 };
 

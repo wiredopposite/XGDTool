@@ -13,8 +13,8 @@
 
 class XisoWriter : public ImageWriter {
 public:
-    XisoWriter(std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, const bool split, const bool allowed_media_patch);
-    XisoWriter(const std::filesystem::path& in_dir_path, const bool split, const bool allowed_media_patch);
+    XisoWriter(std::shared_ptr<ImageReader> image_reader, ScrubType scrub_type, const bool split);
+    XisoWriter(const std::filesystem::path& in_dir_path, const bool split);
     
     ~XisoWriter();
 
@@ -26,7 +26,6 @@ private:
 
     ScrubType scrub_type_{ScrubType::NONE};
     bool split_{false};
-    bool allowed_media_patch_{false}; // Only used for full scrub rn
 
     split::ofstream out_file_;
 

@@ -13,8 +13,8 @@
 
 class CCIWriter : public ImageWriter {
 public:
-    CCIWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type, const bool allowed_media_patch);
-    CCIWriter(const std::filesystem::path& in_dir_path, const bool allowed_media_patch);
+    CCIWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type);
+    CCIWriter(const std::filesystem::path& in_dir_path);
     
     ~CCIWriter() override;
 
@@ -25,7 +25,6 @@ private:
     std::shared_ptr<ImageReader> image_reader_{nullptr};
 
     ScrubType scrub_type_;
-    bool allowed_media_patch_{true};
 
     std::filesystem::path out_filepath_base_;
     std::filesystem::path out_filepath_1_;

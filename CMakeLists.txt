@@ -31,7 +31,7 @@ set(SRC
     ${SRC_DIR}/ImageReader/GoDReader/GoDReader.cpp
     ${SRC_DIR}/ImageReader/CCIReader/CCIReader.cpp
     ${SRC_DIR}/ImageReader/ZARReader/ZARReader.cpp
-    # ${SRC_DIR}/ImageReader/CSOReader/CSOReader.cpp
+    ${SRC_DIR}/ImageReader/CSOReader/CSOReader.cpp
 
     ${SRC_DIR}/ImageWriter/ImageWriter.cpp
     ${SRC_DIR}/ImageWriter/XisoWriter/XisoWriter.cpp
@@ -40,7 +40,11 @@ set(SRC
     ${SRC_DIR}/ImageWriter/ZARWriter/ZARWriter.cpp
     ${SRC_DIR}/ImageWriter/CSOWriter/CSOWriter.cpp
 
+    ${SRC_DIR}/ImageExtractor/ImageExtractor.cpp
+
     ${SRC_DIR}/ExeTool/ExeTool.cpp
+
+    ${SRC_DIR}/TitleHelper/TitleHelper.cpp
 
     ${SRC_DIR}/AvlTree/AvlTree.cpp
     ${SRC_DIR}/AvlTree/AvlTree_Calculate.cpp
@@ -50,14 +54,6 @@ set(SRC
 
     ${SRC_DIR}/SplitFStream/SplitIFStream.cpp
     ${SRC_DIR}/SplitFStream/SplitOFStream.cpp
-
-    ${SRC_DIR}/UnityTool/UnityTool.cpp
-    ${SRC_DIR}/TitleHelper/TitleHelper.cpp
-
-    # ${SRC_DIR}/InputHelper/InputHelper.cpp
-    # ${SRC_DIR}/InputHelper/InputHelper_IO.cpp
-    # ${SRC_DIR}/InputHelper/TitleHelper.cpp
-    # ${SRC_DIR}/InputHelper/Unity.cpp
 
     ${SRC_DIR}/Common/EndianUtils.cpp
     ${SRC_DIR}/Common/StringUtils.cpp

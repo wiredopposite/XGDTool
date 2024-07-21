@@ -14,8 +14,8 @@
 
 class CSOWriter : public ImageWriter {
 public:
-    CSOWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type, const bool allowed_media_patch);
-    CSOWriter(const std::filesystem::path& in_dir_path, const bool allowed_media_patch);
+    CSOWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type);
+    CSOWriter(const std::filesystem::path& in_dir_path);
     
     ~CSOWriter();
 
@@ -28,8 +28,7 @@ private:
     std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
 
-    ScrubType scrub_type_;
-    bool allowed_media_patch_{true};
+    ScrubType scrub_type_{ScrubType::NONE};
 
     std::filesystem::path out_filepath_base_;
     std::filesystem::path out_filepath_1_;

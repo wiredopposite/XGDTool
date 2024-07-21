@@ -10,51 +10,44 @@
 
 namespace Xiso {
 
-    static constexpr uint32_t SECTOR_SIZE  = 2048;
-    static constexpr uint8_t  PAD_BYTE     = 0xFF;
-    static constexpr uint16_t PAD_SHORT    = 0xFFFF;
-    static constexpr uint32_t FILE_MODULUS = 0x10000;
+    constexpr uint32_t SECTOR_SIZE  = 2048;
+    constexpr uint8_t  PAD_BYTE     = 0xFF;
+    constexpr uint16_t PAD_SHORT    = 0xFFFF;
+    constexpr uint32_t FILE_MODULUS = 0x10000;
 
-    static constexpr uint32_t REDUMP_VIDEO_SECTORS = 0x30600;
-    static constexpr uint32_t REDUMP_GAME_SECTORS  = 0x3A4D50;
-    static constexpr uint32_t REDUMP_END_SECTOR    = 0x345B60;
-    static constexpr uint32_t SECTOR_SHIFT         = 11;
-    static constexpr uint64_t SPLIT_MARGIN = 0xFF000000; 
+    constexpr uint32_t REDUMP_VIDEO_SECTORS = 0x30600;
+    constexpr uint32_t REDUMP_GAME_SECTORS  = 0x3A4D50;
+    constexpr uint32_t REDUMP_END_SECTOR    = 0x345B60;
+    constexpr uint32_t SECTOR_SHIFT         = 11;
+    constexpr uint64_t SPLIT_MARGIN = 0xFF000000; 
 
-    static constexpr char     SYSTEM_UPDATE_DIR[] = "$SystemUpdate";
+    constexpr char     SYSTEM_UPDATE_DIR[] = "$SystemUpdate";
 
-    static constexpr char     MAGIC_DATA[]      = "MICROSOFT*XBOX*MEDIA";
-    static constexpr uint32_t MAGIC_DATA_LEN    = 20;
-    static constexpr uint32_t MAGIC_OFFSET      = 0x10000;
-    static constexpr uint32_t MAGIC_UNUSED_LEN  = 0x7c8;
+    constexpr char     MAGIC_DATA[]      = "MICROSOFT*XBOX*MEDIA";
+    constexpr uint32_t MAGIC_DATA_LEN    = 20;
+    constexpr uint32_t MAGIC_OFFSET      = 0x10000;
+    constexpr uint32_t MAGIC_UNUSED_LEN  = 0x7c8;
 
-    static constexpr uint32_t LSEEK_OFFSET_GLOBAL = 0x0FD90000;
-    static constexpr uint32_t LSEEK_OFFSET_XGD3   = 0x02080000;
-    static constexpr uint32_t LSEEK_OFFSET_XGD1   = 0x18300000;
+    constexpr uint32_t LSEEK_OFFSET_GLOBAL = 0x0FD90000;
+    constexpr uint32_t LSEEK_OFFSET_XGD3   = 0x02080000;
+    constexpr uint32_t LSEEK_OFFSET_XGD1   = 0x18300000;
 
-    static constexpr char     MEDIA_ENABLE_TAG[]       = "\xe8\xca\xfd\xff\xff\x85\xc0\x7d";
-    static constexpr size_t   MEDIA_ENABLE_TAG_LEN     = 8;
-    static constexpr char     MEDIA_ENABLE_BYTE        = '\xeb';
-    static constexpr uint32_t MEDIA_ENABLE_BYTE_OFFSET = 7;
+    constexpr uint32_t ROOT_DIRECTORY_SECTOR = 0x108;
 
-    static constexpr uint32_t ROOT_DIRECTORY_SECTOR = 0x108;
+    constexpr uint32_t FILENAME_MAX_CHARS  = 255;
 
-    // static constexpr uint32_t FILENAME_OFFSET     = 14;
-    // static constexpr uint32_t FILENAME_LEN_OFFSET = FILENAME_OFFSET - 1;
-    static constexpr uint32_t FILENAME_MAX_CHARS  = 255;
+    constexpr uint8_t ATTRIBUTE_READ_ONLY = 0x01;
+    constexpr uint8_t ATTRIBUTE_HIDDEN    = 0x02;
+    constexpr uint8_t ATTRIBUTE_SYSTEM    = 0x04;
+    constexpr uint8_t ATTRIBUTE_DIRECTORY = 0x10;
+    constexpr uint8_t ATTRIBUTE_FILE      = 0x20;
+    constexpr uint8_t ATTRIBUTE_NORMAL    = 0x80;
 
-    static constexpr uint8_t ATTRIBUTE_READ_ONLY = 0x01;
-    static constexpr uint8_t ATTRIBUTE_HIDDEN    = 0x02;
-    static constexpr uint8_t ATTRIBUTE_SYSTEM    = 0x04;
-    static constexpr uint8_t ATTRIBUTE_DIRECTORY = 0x10;
-    static constexpr uint8_t ATTRIBUTE_FILE      = 0x20;
-    static constexpr uint8_t ATTRIBUTE_NORMAL    = 0x80;
-
-    static constexpr uint32_t ECMA119_DATA_START        = 0x8000;
-    static constexpr uint32_t ECMA119_VOL_SPACE_SIZE    = ECMA119_DATA_START + 80;
-    static constexpr uint32_t ECMA119_VOL_SET_SIZE      = ECMA119_DATA_START + 120;
-    static constexpr uint32_t ECMA119_VOL_SET_ID        = ECMA119_DATA_START + 190;
-    static constexpr uint32_t ECMA119_VOL_CREATION_DATE = ECMA119_DATA_START + 813;
+    constexpr uint32_t ECMA119_DATA_START        = 0x8000;
+    constexpr uint32_t ECMA119_VOL_SPACE_SIZE    = ECMA119_DATA_START + 80;
+    constexpr uint32_t ECMA119_VOL_SET_SIZE      = ECMA119_DATA_START + 120;
+    constexpr uint32_t ECMA119_VOL_SET_ID        = ECMA119_DATA_START + 190;
+    constexpr uint32_t ECMA119_VOL_CREATION_DATE = ECMA119_DATA_START + 813;
 
     struct DirectoryEntry {
         #pragma pack(push, 1)
@@ -85,14 +78,18 @@ namespace Xiso {
         uint32_t low;
         uint32_t high;
 
-        FileTime() {
+        FileTime() 
+        {
             double tmp;
             time_t now;
 
-            if ((now = std::time(nullptr)) == -1) {
+            if ((now = std::time(nullptr)) == -1) 
+            {
                 low = 0xd7d3e000;
                 high = 0x01c55c11;
-            } else {
+            } 
+            else 
+            {
                 tmp = ((double) now + (369.0 * 365.25 * 24 * 60 * 60 - (3.0 * 24 * 60 * 60 + 6.0 * 60 * 60))) * 1.0e7;
 
                 high = static_cast<uint32_t>(tmp * (1.0 / (4.0 * (double) (1 << 30))));
@@ -137,7 +134,8 @@ namespace Xiso {
         char magic2[20];
 
         Header(const uint32_t in_root_sector, const uint32_t in_root_size, const uint32_t in_total_sectors)
-            : root_sector(in_root_sector), root_size(in_root_size) {
+            : root_sector(in_root_sector), root_size(in_root_size) 
+        {
 
             std::memcpy(optimized_tag, XGD::OPTIMIZED_TAG, sizeof(optimized_tag));
             std::memcpy(magic1, Xiso::MAGIC_DATA, sizeof(magic1));

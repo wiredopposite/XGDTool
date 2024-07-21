@@ -4,20 +4,17 @@
 #include "ImageWriter/CCIWriter/CCIWriter.h"
 #include "AvlTree/AvlIterator.h"
 
-CCIWriter::CCIWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type, const bool allowed_media_patch)
+CCIWriter::CCIWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type)
     :   image_reader_(image_reader), 
-        scrub_type_(scrub_type), 
-        allowed_media_patch_(allowed_media_patch) {
-
+        scrub_type_(scrub_type) 
+{
     if (scrub_type_ == ScrubType::FULL) {
         avl_tree_ = std::make_unique<AvlTree>(image_reader_->name(), image_reader_->directory_entries());
     }
 }
 
-CCIWriter::CCIWriter(const std::filesystem::path& in_dir_path, const bool allowed_media_patch)
-    :   allowed_media_patch_(allowed_media_patch), 
-        avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) {
-}
+CCIWriter::CCIWriter(const std::filesystem::path& in_dir_path)
+    :   avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) {}
 
 CCIWriter::~CCIWriter() {}
 

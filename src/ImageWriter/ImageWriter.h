@@ -10,7 +10,7 @@
 
 enum class ScrubType { NONE, PARTIAL, FULL };
 
-struct Settings 
+struct OutputSettings 
 {
     ScrubType scrub_type{ScrubType::NONE};
     bool split{false};
@@ -28,6 +28,7 @@ public:
 
     std::vector<std::filesystem::path> virtual convert(const std::filesystem::path& out_filepath) = 0;
 
+protected:
     void create_directory(const std::filesystem::path& dir_path);
 };
 
@@ -36,12 +37,12 @@ namespace WriterFactory
     std::unique_ptr<ImageWriter> create(FileType out_file_type, 
                                         std::shared_ptr<ImageReader> image_reader, 
                                         std::unique_ptr<TitleHelper>& title_helper, 
-                                        Settings settings);
+                                        OutputSettings Output);
 
     std::unique_ptr<ImageWriter> create(FileType out_file_type, 
                                         const std::filesystem::path& in_dir_path, 
                                         std::unique_ptr<TitleHelper>& title_helper, 
-                                        Settings settings);
+                                        OutputSettings settings);
 };
 
 #endif // _IMAGE_WRITER_H_

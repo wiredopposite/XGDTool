@@ -7,13 +7,13 @@
 
 namespace CCI {
 
-    static constexpr char     MAGIC[] = "CCIM";
-    static constexpr int      MAGIC_LEN = 4;
-    static const     uint32_t HEADER_SIZE = 32;
-    static const     uint32_t BLOCK_SIZE = 2048;
-    static const     uint8_t  VERSION = 1;
-    static const     uint8_t  INDEX_ALIGNMENT = 2;
-    static constexpr uint64_t SPLIT_OFFSET = 0xFF000000;
+    constexpr char     MAGIC[] = "CCIM";
+    constexpr int      MAGIC_LEN = 4;
+    const     uint32_t HEADER_SIZE = 32;
+    const     uint32_t BLOCK_SIZE = 2048;
+    const     uint8_t  VERSION = 1;
+    const     uint8_t  INDEX_ALIGNMENT = 2;
+    constexpr uint64_t SPLIT_OFFSET = 0xFF000000;
 
     struct IndexInfo {
         uint32_t value;

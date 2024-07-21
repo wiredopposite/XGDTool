@@ -23,8 +23,8 @@
 
 class GoDWriter : public ImageWriter {
 public:
-    GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type, const bool allowed_media_patch);
-    GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper, const bool allowed_media_patch);
+    GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type);
+    GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper);
 
     ~GoDWriter() override;
 
@@ -43,7 +43,7 @@ private:
 
     std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
-    std::unique_ptr<TitleHelper>& title_helper_{nullptr};
+    std::unique_ptr<TitleHelper>& title_helper_;
     std::filesystem::path in_dir_path_;
 
     std::vector<std::unique_ptr<std::ofstream>> out_files_;
@@ -52,7 +52,6 @@ private:
     uint64_t current_dir_position_{0};
 
     ScrubType scrub_type_{ScrubType::NONE};
-    bool allowed_media_patch_{false};
 
     uint64_t prog_total_{0};
     uint64_t prog_processed_{0};
@@ -64,9 +63,9 @@ private:
     std::vector<std::filesystem::path> write_data_files_from_avl(const std::filesystem::path& out_data_directory);
     void write_xiso_header(AvlTree& avl_tree);
     void write_final_xiso_padding(const uint64_t& out_iso_size);
-    void write_tree(AvlTree::Node* node, ImageReader* reader, int depth);
+    void write_tree(AvlTree::Node* node, ImageReader* image_reader, int depth);
     void write_entry(AvlTree::Node* node, void* context, int depth);
-    void write_file(AvlTree::Node* node, ImageReader* reader, int depth);
+    void write_file(AvlTree::Node* node, ImageReader* image_reader, int depth);
     void write_file_dir(AvlTree::Node* node, void* context, int depth);
 
     //Finalize out files
