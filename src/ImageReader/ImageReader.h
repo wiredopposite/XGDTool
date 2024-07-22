@@ -7,9 +7,7 @@
 #include <unordered_set>
 
 #include "Formats/Xiso.h"
-
-enum class Platform { UNKNOWN, OGX, X360 };
-enum class FileType { UNKNOWN, CCI, CSO, ISO, ZAR, DIR, GoD, XBE };
+#include "InputHelper/Types.h"
 
 /*  Each derived class implements its own override methods for reading the filetype it's responsible for,
     ImageReader's virtual read_ methods should all produce the same results no matter the derived class.

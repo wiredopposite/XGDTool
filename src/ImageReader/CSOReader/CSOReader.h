@@ -1,3 +1,6 @@
+#ifndef _CSO_READER_H_
+#define _CSO_READER_H_
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -46,3 +49,5 @@ private:
 
     void verify_and_populate_index_infos();
 };
+
+#endif // _CSO_READER_H_

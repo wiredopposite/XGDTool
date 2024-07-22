@@ -5,10 +5,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <memory>
 
 #include "XGD.h"
 #include "Common/StringUtils.h"
 #include "ImageReader/ImageReader.h"
+#include "InputHelper/Types.h"
 #include "Executable/ExeTool.h"
 #include "Formats/Xex.h"
 #include "Formats/Xbe.h"
@@ -54,9 +56,9 @@ private:
     Platform platform_{Platform::UNKNOWN};
 
     void initialize();  
-    void initialize_offline(std::unique_ptr<ExeTool>& exe_tool);
-    bool set_ogx_titles_online(std::unique_ptr<ExeTool>& exe_tool);
-    bool set_x360_titles_online(std::unique_ptr<ExeTool>& exe_tool);
+    void initialize_offline(ExeTool& exe_tool);
+    bool set_ogx_titles_online(ExeTool& exe_tool);
+    bool set_x360_titles_online(ExeTool& exe_tool);
 
     template <typename T>
     void write_little_endian(std::ostream& os, T value);

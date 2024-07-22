@@ -7,19 +7,7 @@
 
 #include "ImageReader/ImageReader.h"
 #include "TitleHelper/TitleHelper.h"
-
-enum class ScrubType { NONE, PARTIAL, FULL };
-
-struct OutputSettings 
-{
-    ScrubType scrub_type{ScrubType::NONE};
-    bool split{false};
-    bool attach_xbe{false};
-    bool allowed_media_patch{false};
-    bool offline_mode{false};
-    bool rename_xbe{false};
-    LogLevel log_level{LogLevel::Normal};
-};
+#include "InputHelper/Types.h"
 
 class ImageWriter 
 {

@@ -61,10 +61,10 @@ void TitleHelper::initialize()
         switch (platform_) 
         {
             case Platform::X360:
-                initialized = set_x360_titles_online(exe_tool);
+                initialized = set_x360_titles_online(*exe_tool);
                 break;
             case Platform::OGX:
-                initialized = set_ogx_titles_online(exe_tool);
+                initialized = set_ogx_titles_online(*exe_tool);
                 break;
             default:
                 throw XGDException(ErrCode::MISC, HERE(), "Invalid platform.");
@@ -73,13 +73,13 @@ void TitleHelper::initialize()
 
     if (!initialized) 
     {
-        initialize_offline(exe_tool);
+        initialize_offline(*exe_tool);
     }
 
     XGDLog(Debug) << "Title information retrieved for: " << title_name_ << XGDLog::Endl;
 }
 
-void TitleHelper::initialize_offline(std::unique_ptr<ExeTool>& exe_tool) 
+void TitleHelper::initialize_offline(ExeTool& exe_tool) 
 {
     if (image_reader_) 
     {
@@ -103,9 +103,9 @@ void TitleHelper::initialize_offline(std::unique_ptr<ExeTool>& exe_tool)
     iso_name_ = title_name_;
     utf16_title_name_ = StringUtils::utf8_to_utf16(title_name_);
 
-    unique_name_ = create_unique_name(exe_tool->xex_cert());
+    unique_name_ = create_unique_name(exe_tool.xex_cert());
     folder_name_ = folder_name_.substr(0, 42);
-    god_folder_name_ = god_folder_name_.substr(0, 31) + " [" + StringUtils::uint32_to_hex_string(exe_tool->title_id()) + "]";
+    god_folder_name_ = god_folder_name_.substr(0, 31) + " [" + StringUtils::uint32_to_hex_string(exe_tool.title_id()) + "]";
     iso_name_ = iso_name_.substr(0, 36);
 
     if (utf16_title_name_.size() > 40) {
@@ -113,7 +113,7 @@ void TitleHelper::initialize_offline(std::unique_ptr<ExeTool>& exe_tool)
     }
 }
 
-bool TitleHelper::set_ogx_titles_online(std::unique_ptr<ExeTool>& exe_tool) 
+bool TitleHelper::set_ogx_titles_online(ExeTool& exe_tool) 
 {
     std::string url = "https://raw.githubusercontent.com/Team-Resurgent/Repackinator/main/RepackList.json";
     std::string json_string;
@@ -147,16 +147,16 @@ bool TitleHelper::set_ogx_titles_online(std::unique_ptr<ExeTool>& exe_tool)
     nlohmann::json json = nlohmann::json::parse(json_string);
 
     std::stringstream title_id_ss;
-    title_id_ss << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << exe_tool->xbe_cert().title_id;
+    title_id_ss << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << exe_tool.xbe_cert().title_id;
     std::string title_id_str = title_id_ss.str();
 
     std::stringstream version_ss;
-    version_ss << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << exe_tool->xbe_cert().cert_version;
+    version_ss << std::hex << std::setw(8) << std::setfill('0') << std::uppercase << exe_tool.xbe_cert().cert_version;
     std::string version_str = version_ss.str();
 
     std::string region_str;
 
-    switch (exe_tool->xbe_cert().region_code) 
+    switch (exe_tool.xbe_cert().region_code) 
     {
         case 0x00000001:
             region_str = "USA";
@@ -228,16 +228,16 @@ bool TitleHelper::set_ogx_titles_online(std::unique_ptr<ExeTool>& exe_tool)
     }
 
     utf16_title_name_ = StringUtils::utf8_to_utf16(title_name_);
-    unique_name_ = create_unique_name(exe_tool->xex_cert());
+    unique_name_ = create_unique_name(exe_tool.xex_cert());
     god_folder_name_ = title_name_;
     god_folder_name_ = god_folder_name_.substr(0, 31) + " [" + StringUtils::uint32_to_hex_string(title_id_) + "]";
 
     return true;
 }
 
-bool TitleHelper::set_x360_titles_online(std::unique_ptr<ExeTool>& exe_tool) 
+bool TitleHelper::set_x360_titles_online(ExeTool& exe_tool) 
 {
-    title_id_ = exe_tool->title_id();
+    title_id_ = exe_tool.title_id();
 
     std::string name = unity_get_title_name(title_id_);
     if (name == "Error") 
@@ -258,7 +258,7 @@ bool TitleHelper::set_x360_titles_online(std::unique_ptr<ExeTool>& exe_tool)
     folder_name_     = folder_name_.substr(0, 42);
     god_folder_name_ = god_folder_name_.substr(0, 31) + " [" + StringUtils::uint32_to_hex_string(title_id_) + "]";
 
-    unique_name_     = create_unique_name(exe_tool->xex_cert());
+    unique_name_     = create_unique_name(exe_tool.xex_cert());
     utf16_title_name_ = StringUtils::utf8_to_utf16(title_name_);
 
     if (utf16_title_name_.size() > 40) 

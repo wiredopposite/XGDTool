@@ -271,10 +271,3 @@ void ExeTool::create_xex_cert_from_xbe()
     xex_cert_.disc_number = 1;
     EndianUtils::big_32(xex_cert_.title_id);
 }
-
-void ExeTool::patch_allowed_media(Xbe::Cert& xbe_cert) 
-{
-    uint32_t allowed_media = Xbe::AllowedMedia::HARD_DISK | Xbe::AllowedMedia::NONSECURE_HARD_DISK;
-    EndianUtils::little_32(allowed_media);
-    xbe_cert.allowed_media_types |= allowed_media;
-}

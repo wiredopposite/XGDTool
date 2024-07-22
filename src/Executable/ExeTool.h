@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "ImageReader/ImageReader.h"
+#include "InputHelper/Types.h"
 #include "Formats/Xex.h"
 #include "Formats/Xbe.h"
 
@@ -25,8 +26,6 @@ public:
 
     uint64_t exe_offset() { return exe_offset_; }; // Absolute offset in image
     uint64_t cert_offset() { return cert_offset_; }; // Relative to exe_offset
-
-    void patch_allowed_media(Xbe::Cert& xbe_cert);
 
 private:
     Platform platform_{Platform::UNKNOWN};

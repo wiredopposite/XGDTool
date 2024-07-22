@@ -26,6 +26,9 @@ set(SRC
     ${SRC_DIR}/XGDLog.cpp
     ${SRC_DIR}/XGDException.cpp
 
+    ${SRC_DIR}/InputHelper/InputHelper.cpp
+    ${SRC_DIR}/InputHelper/InputHelper_FS.cpp
+
     ${SRC_DIR}/ImageReader/ImageReader.cpp
     ${SRC_DIR}/ImageReader/XisoReader/XisoReader.cpp
     ${SRC_DIR}/ImageReader/GoDReader/GoDReader.cpp
@@ -70,6 +73,10 @@ find_package(OpenSSL CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 
 # set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
+
+if(MSVC)
+    target_compile_options(zarchive PRIVATE /wd4244)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     zarchive
