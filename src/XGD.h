@@ -14,7 +14,7 @@ namespace XGD {
     constexpr char     NAME[]         = XGDTOOL_NAME;
     constexpr char     VERSION[]      = XGDTOOL_VERSION;
     constexpr uint32_t VERSION_LEN    = sizeof(VERSION) - 1;
-    constexpr uint32_t BUFFER_SIZE    = 0x00200000; // 2MB
+    constexpr uint32_t BUFFER_SIZE    = 0x10000; // 64KB
 
     constexpr char     OPTIMIZED_TAG[]       = "in!xgdt!" XGDTOOL_VERSION;
     constexpr uint32_t OPTIMIZED_TAG_OFFSET  = 31337;

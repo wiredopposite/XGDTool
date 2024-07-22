@@ -22,8 +22,8 @@
 
 class GoDWriter : public ImageWriter {
 public:
-    GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type);
-    GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper);
+    GoDWriter(std::shared_ptr<ImageReader> image_reader, TitleHelper& title_helper, const ScrubType scrub_type);
+    GoDWriter(const std::filesystem::path& in_dir_path, TitleHelper& title_helper);
 
     ~GoDWriter() override;
 
@@ -42,7 +42,7 @@ private:
 
     std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
-    std::unique_ptr<TitleHelper>& title_helper_;
+    TitleHelper& title_helper_;
     std::filesystem::path in_dir_path_;
 
     std::vector<std::unique_ptr<std::ofstream>> out_files_;

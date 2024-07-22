@@ -125,10 +125,10 @@ std::vector<std::filesystem::path> InputHelper::create_image(FileType out_file_t
     switch (input_info.in_file_type) 
     {
         case FileType::DIR:
-            image_writer = WriterFactory::create(out_file_type, input_info.in_paths.front(), title_helper, output_settings_);
+            image_writer = WriterFactory::create(out_file_type, input_info.in_paths.front(), *title_helper, output_settings_);
             break;
         default:
-            image_writer = WriterFactory::create(out_file_type, image_reader, title_helper, output_settings_);
+            image_writer = WriterFactory::create(out_file_type, image_reader, *title_helper, output_settings_);
             break;
     }
 
@@ -136,9 +136,8 @@ std::vector<std::filesystem::path> InputHelper::create_image(FileType out_file_t
 
     if (output_settings_.attach_xbe)
     {
-        std::unique_ptr<AttachXbeTool> attach_xbe_tool = std::make_unique<AttachXbeTool>(*title_helper); 
-
-        attach_xbe_tool->generate_attach_xbe(final_out_paths.front().parent_path() / "default.xbe");
+        AttachXbeTool attach_xbe_tool(*title_helper);
+        attach_xbe_tool.generate_attach_xbe(final_out_paths.front().parent_path() / "default.xbe");
     }
 
     return final_out_paths;

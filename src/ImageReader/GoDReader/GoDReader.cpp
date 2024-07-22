@@ -14,7 +14,7 @@ GoDReader::GoDReader(const std::vector<std::filesystem::path>& in_god_directory)
     auto last_blocks = std::filesystem::file_size(in_god_data_paths_.back()) / GoD::BLOCK_SIZE;
     auto last_hash_index = (last_blocks - 1) / (GoD::DATA_BLOCKS_PER_SHT + 1);
     auto last_data_blocks = last_blocks - (last_hash_index + 1);
-    auto total_data_blocks = ((in_god_data_paths_.size() - 1) * GoD::DATA_BLOCKS_PER_PART) + last_blocks;
+    auto total_data_blocks = ((in_god_data_paths_.size() - 1) * GoD::DATA_BLOCKS_PER_PART) + last_data_blocks;
 
     total_sectors_ = static_cast<uint32_t>(total_data_blocks * (GoD::BLOCK_SIZE / Xiso::SECTOR_SIZE));
 

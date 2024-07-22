@@ -8,6 +8,7 @@
 enum class Platform { UNKNOWN, OGX, X360 };
 enum class FileType { UNKNOWN, CCI, CSO, ISO, ZAR, DIR, GoD, XBE };
 enum class ScrubType { NONE, PARTIAL, FULL };
+enum class AutoFormat { NONE, OGXBOX, XBOX360, XEMU, XENIA };
 
 struct OutputSettings 
 {

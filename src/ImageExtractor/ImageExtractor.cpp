@@ -70,14 +70,15 @@ void ImageExtractor::extract_file(const Xiso::DirectoryEntry& dir_entry)
     {
         throw XGDException(ErrCode::FILE_OPEN, HERE(), "Failed to open file for writing: " + dir_entry.path.string());
     }
-
-    std::vector<char> buffer(Xiso::SECTOR_SIZE);
-    uint32_t bytes_remaining = dir_entry.header.file_size;
+    
+    size_t bytes_remaining = dir_entry.header.file_size;
     uint64_t read_position = image_reader_.image_offset() + static_cast<uint64_t>(dir_entry.header.start_sector) * Xiso::SECTOR_SIZE;
+
+    std::vector<char> buffer(XGD::BUFFER_SIZE);
 
     while (bytes_remaining > 0) 
     {
-        uint32_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
+        size_t read_size = std::min(bytes_remaining, buffer.size());
 
         image_reader_.read_bytes(read_position, read_size, buffer.data());
 
@@ -103,21 +104,21 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
 
     if (allowed_media_patch_)
     {
-        uint32_t allowed_media = Xbe::AllowedMedia::HARD_DISK | Xbe::AllowedMedia::NONSECURE_HARD_DISK;
-        EndianUtils::little_32(allowed_media);
-        xbe_cert.allowed_media_types |= allowed_media;
+        uint32_t patch = Xbe::AllowedMedia::HARD_DISK | Xbe::AllowedMedia::NONSECURE_HARD_DISK | Xbe::AllowedMedia::MEDIA_BOARD;
+        EndianUtils::little_32(patch);
+        xbe_cert.allowed_media_types |= patch;
     }
     if (rename_xbe_)
     {
-        std::memcpy(xbe_cert.title_name, title_helper_.title_name().data(), std::min(title_helper_.title_name().size(), static_cast<size_t>(80)));
+        std::memcpy(&xbe_cert.title_name, title_helper_.title_name().data(), std::min(title_helper_.title_name().size() * sizeof(char16_t), static_cast<size_t>(80)));
     }
+    
+    size_t bytes_remaining = dir_entry.header.file_size;
+    uint32_t current_sector = static_cast<uint32_t>(image_reader_.image_offset() / Xiso::SECTOR_SIZE) + dir_entry.header.start_sector;
 
-    uint64_t cert_offset = exe_tool.cert_offset();
+    uint64_t cert_offset = static_cast<uint64_t>(current_sector) * Xiso::SECTOR_SIZE + exe_tool.cert_offset();
     uint32_t cert_sector = static_cast<uint32_t>(cert_offset / Xiso::SECTOR_SIZE);
     uint32_t cert_offset_in_sector = static_cast<uint32_t>(cert_offset % Xiso::SECTOR_SIZE);
-    
-    uint32_t bytes_remaining = dir_entry.header.file_size;
-    uint32_t current_sector = static_cast<uint32_t>(image_reader_.image_offset() / Xiso::SECTOR_SIZE) + dir_entry.header.start_sector;
 
     std::vector<char> buffer(Xiso::SECTOR_SIZE);
 
@@ -131,9 +132,9 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
     {
         if (current_sector == cert_sector) 
         {
-            uint32_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE * 2);
             std::vector<char> cert_buffer(Xiso::SECTOR_SIZE * 2);
-
+            size_t write_size = std::min(bytes_remaining, cert_buffer.size());
+            
             image_reader_.read_sector(current_sector, cert_buffer.data());
             current_sector++;
 
@@ -144,6 +145,11 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
             }
 
             std::memcpy(cert_buffer.data() + cert_offset_in_sector, &xbe_cert, sizeof(Xbe::Cert));
+
+            // XGDLog(Debug)   << "Patching XBE cert at offset: " << cert_sector * Xiso::SECTOR_SIZE + cert_offset_in_sector 
+            //                 << "\nCalculated Offset: " 
+            //                 << image_reader_.image_offset() + (dir_entry.header.start_sector * Xiso::SECTOR_SIZE) + exe_tool.cert_offset() 
+            //                 << XGDLog::Endl;
 
             out_file.write(cert_buffer.data(), write_size);
             if (out_file.fail())
@@ -158,7 +164,7 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
             continue;
         } 
 
-        uint32_t write_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
+        size_t write_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));
 
         image_reader_.read_sector(current_sector, buffer.data());
 

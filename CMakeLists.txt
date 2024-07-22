@@ -72,8 +72,6 @@ find_package(CLI11 CONFIG REQUIRED)
 find_package(OpenSSL CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 
-# set(nlohmann-json_IMPLICIT_CONVERSIONS OFF)
-
 if(MSVC)
     target_compile_options(zarchive PRIVATE /wd4244)
 endif()

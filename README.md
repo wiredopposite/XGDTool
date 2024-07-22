@@ -1,5 +1,5 @@
 # XGDTool
-XGDTool is a command line OG and 360 Xbox disc utility, capable of converting discs to or from any mainstream format.
+XGDTool is a command line OG and 360 Xbox disc utility, capable of converting discs to and from any mainstream format.
 
 ## Features
 - Supports convertion between following formats:
@@ -29,8 +29,6 @@ These arguments are mutually exclusive, you can only use on at a time.
 - ```--cso```        Creates a CSO archive (automatically split if too large for Xbox)
 - ```--zar```        Creates a ZAR archive
 - ```--xbe```        Generates an attach XBE file, does not convert the input file
-
-"Choose for me" arguments:
 - ```--ogxbox```    Choose the best format and settings for use with OG Xbox
 - ```--xbox360```   Choose the best format and settings for use with Xbox 360
 - ```--xemu```   Choose the best format and settings for use with Xemu

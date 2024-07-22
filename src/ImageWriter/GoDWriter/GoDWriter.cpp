@@ -1,10 +1,10 @@
 #include <cctype>
 
 #include "Common/Utils.h"
-#include "ImageWriter/GoDWriter/GoD_live_header.h"
+#include "ImageWriter/GoDWriter/GoDLiveHeader.h"
 #include "ImageWriter/GoDWriter/GoDWriter.h"
 
-GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<TitleHelper>& title_helper, const ScrubType scrub_type)
+GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, TitleHelper& title_helper, const ScrubType scrub_type)
     :   image_reader_(image_reader),
         title_helper_(title_helper),
         scrub_type_(scrub_type)
@@ -15,7 +15,7 @@ GoDWriter::GoDWriter(std::shared_ptr<ImageReader> image_reader, std::unique_ptr<
     }
 }
 
-GoDWriter::GoDWriter(const std::filesystem::path& in_dir_path, std::unique_ptr<TitleHelper>& title_helper)
+GoDWriter::GoDWriter(const std::filesystem::path& in_dir_path, TitleHelper& title_helper)
     :   in_dir_path_(in_dir_path),
         title_helper_(title_helper),
         avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) {}
@@ -31,14 +31,9 @@ GoDWriter::~GoDWriter()
 
 std::vector<std::filesystem::path> GoDWriter::convert(const std::filesystem::path& out_god_directory) 
 {
-    if (!title_helper_) 
-    {
-        throw XGDException(ErrCode::MISC, HERE(), "TitleHelper not set");
-    }
-
     std::string platform_str;
 
-    switch (title_helper_->platform()) 
+    switch (title_helper_.platform()) 
     {
         case Platform::OGX:
             platform_str = StringUtils::uint32_to_hex_string(GoD::Type::ORIGINAL_XBOX);
@@ -50,8 +45,8 @@ std::vector<std::filesystem::path> GoDWriter::convert(const std::filesystem::pat
             throw XGDException(ErrCode::MISC, HERE(), "Unknown platform");
     }
 
-    std::filesystem::path out_data_directory = out_god_directory / platform_str / (title_helper_->unique_name() + ".data");
-    std::filesystem::path live_header_path = out_god_directory / platform_str / title_helper_->unique_name();
+    std::filesystem::path out_data_directory = out_god_directory / platform_str / (title_helper_.unique_name() + ".data");
+    std::filesystem::path live_header_path = out_god_directory / platform_str / title_helper_.unique_name();
 
     create_directory(out_data_directory);
 
@@ -651,13 +646,13 @@ void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, 
     out_str.write(reinterpret_cast<const char*>(EMPTY_LIVE_HEADER), EMPTY_LIVE_HEADER_SIZE);
 
     out_str.seekp(0x354, std::ios::beg);
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().media_id), sizeof(uint32_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().media_id), sizeof(uint32_t));
     out_str.seekp(0x360, std::ios::beg);
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().title_id), sizeof(uint32_t));
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().platform), sizeof(uint8_t));
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().executable_type), sizeof(uint8_t));
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().disc_number), sizeof(uint8_t));
-    out_str.write(reinterpret_cast<const char*>(&title_helper_->xex_cert().disc_count), sizeof(uint8_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().title_id), sizeof(uint32_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().platform), sizeof(uint8_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().executable_type), sizeof(uint8_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().disc_number), sizeof(uint8_t));
+    out_str.write(reinterpret_cast<const char*>(&title_helper_.xex_cert().disc_count), sizeof(uint8_t));
 
     uint64_t parts_total_size = 0;
     for (auto& part_path : out_part_paths) 
@@ -667,7 +662,7 @@ void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, 
 
     uint32_t parts_written_size = static_cast<uint32_t>(parts_total_size / 0x100);
     uint32_t part_count = static_cast<uint32_t>(out_part_paths.size());
-    uint32_t content_type = (title_helper_->platform() == Platform::X360) ? GoD::Type::GAMES_ON_DEMAND : GoD::Type::ORIGINAL_XBOX;
+    uint32_t content_type = (title_helper_.platform() == Platform::X360) ? GoD::Type::GAMES_ON_DEMAND : GoD::Type::ORIGINAL_XBOX;
 
     EndianUtils::little_32(part_count);
     EndianUtils::big_32(parts_written_size);
@@ -683,14 +678,14 @@ void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, 
     out_str.write(reinterpret_cast<const char*>(&part_count), sizeof(uint32_t));
     out_str.write(reinterpret_cast<const char*>(&parts_written_size), sizeof(uint32_t));
 
-    size_t title_name_size = std::min(title_helper_->title_name().size() * sizeof(char16_t), static_cast<size_t>(80));
+    size_t title_name_size = std::min(title_helper_.title_name().size() * sizeof(char16_t), static_cast<size_t>(80));
     
     out_str.seekp(0x411 + 1, std::ios::beg);
-    out_str.write(reinterpret_cast<const char*>(title_helper_->title_name().data()), title_name_size);
+    out_str.write(reinterpret_cast<const char*>(title_helper_.title_name().data()), title_name_size);
     out_str.seekp(0x1691 + 1, std::ios::beg);
-    out_str.write(reinterpret_cast<const char*>(title_helper_->title_name().data()), title_name_size);
+    out_str.write(reinterpret_cast<const char*>(title_helper_.title_name().data()), title_name_size);
 
-    uint32_t title_icon_size = (title_helper_->title_icon().size() > 0) ? static_cast<uint32_t>(title_helper_->title_icon().size()) : 20;
+    uint32_t title_icon_size = (title_helper_.title_icon().size() > 0) ? static_cast<uint32_t>(title_helper_.title_icon().size()) : 20;
     EndianUtils::big_32(title_icon_size);
 
     out_str.seekp(0x1712, std::ios::beg);
@@ -698,13 +693,13 @@ void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, 
     out_str.seekp(0x1716, std::ios::beg);
     out_str.write(reinterpret_cast<const char*>(&title_icon_size), sizeof(uint32_t));
 
-    if (title_helper_->title_icon().size() > 0) 
+    if (title_helper_.title_icon().size() > 0) 
     {
         out_str.seekp(0x171A, std::ios::beg);
-        out_str.write(title_helper_->title_icon().data(), title_helper_->title_icon().size());
+        out_str.write(title_helper_.title_icon().data(), title_helper_.title_icon().size());
 
         out_str.seekp(0x571a, std::ios::beg);
-        out_str.write(title_helper_->title_icon().data(), title_helper_->title_icon().size());
+        out_str.write(title_helper_.title_icon().data(), title_helper_.title_icon().size());
     }
 
     SHA1Hash header_hash = compute_sha1(out_str.str().c_str() + 0x344, out_str.str().size() - 0x344);

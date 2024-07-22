@@ -22,10 +22,10 @@ void ImageWriter::create_directory(const std::filesystem::path& dir_path)
 
 namespace WriterFactory 
 {
-    std::unique_ptr<ImageWriter> create(FileType out_file_type, 
+    std::unique_ptr<ImageWriter> create(const FileType out_file_type, 
                                         std::shared_ptr<ImageReader> image_reader, 
-                                        std::unique_ptr<TitleHelper>& title_helper, 
-                                        OutputSettings settings) 
+                                        TitleHelper& title_helper, 
+                                        const OutputSettings& settings) 
     {
         switch (out_file_type) 
         {
@@ -46,8 +46,8 @@ namespace WriterFactory
 
     std::unique_ptr<ImageWriter> create(FileType out_file_type, 
                                         const std::filesystem::path& in_dir_path, 
-                                        std::unique_ptr<TitleHelper>& title_helper, 
-                                        OutputSettings settings) 
+                                        TitleHelper& title_helper, 
+                                        const OutputSettings& settings) 
     {
         switch (out_file_type) 
         {
