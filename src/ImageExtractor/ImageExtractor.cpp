@@ -3,10 +3,7 @@
 #include "ImageExtractor/ImageExtractor.h"
 
 ImageExtractor::ImageExtractor(ImageReader& image_reader, TitleHelper& title_helper, const bool allowed_media_patch, const bool rename_xbe)
-    :   image_reader_(image_reader), 
-        title_helper_(title_helper),
-        allowed_media_patch_(allowed_media_patch),
-        rename_xbe_(rename_xbe) {}
+    : image_reader_(image_reader), title_helper_(title_helper), allowed_media_patch_(allowed_media_patch), rename_xbe_(rename_xbe) {}
 
 void ImageExtractor::extract(const std::filesystem::path& out_dir_path) 
 {
@@ -29,7 +26,7 @@ void ImageExtractor::extract(const std::filesystem::path& out_dir_path)
     {
         if (!StringUtils::safe_string(dir_entry.filename)) 
         {
-            XGDLog(Error) << "Filename contains potentially dangerous characters.\nSkipping: " << dir_entry.filename << XGDLog::Endl;
+            XGDLog(Error) << "Filename contains potentially dangerous characters.\nSkipping: " << dir_entry.filename << "\n";
             continue;
         }
 
@@ -49,7 +46,7 @@ void ImageExtractor::extract(const std::filesystem::path& out_dir_path)
 
             if ((allowed_media_patch_ || rename_xbe_) &&
                 dir_entry.filename.size() > 4 &&
-                StringUtils::case_insensitive_search(dir_entry.filename, ".xbe"))
+                StringUtils::case_insensitive_search(dir_entry.filename, "default.xbe"))
             {
                 extract_file_xbe_patch(dir_entry);
             }
