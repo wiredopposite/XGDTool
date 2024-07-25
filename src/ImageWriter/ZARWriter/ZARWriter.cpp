@@ -138,7 +138,7 @@ void ZARWriter::convert_from_iso(const std::filesystem::path& out_zar_path)
     uint64_t prog_processed = 0;
     
     std::error_code ec;
-    std::vector<char> buffer(64 * 1024);
+    std::vector<char> buffer(XGD::BUFFER_SIZE);
 
     XGDLog() << "Writing files to ZAR archive" << XGDLog::Endl;
 
@@ -153,7 +153,6 @@ void ZARWriter::convert_from_iso(const std::filesystem::path& out_zar_path)
             {
                 throw XGDException(ErrCode::FILE_WRITE, HERE(), entry_path.string());
             }
-
         } 
         else 
         {
