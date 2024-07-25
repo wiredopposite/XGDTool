@@ -16,6 +16,7 @@
 #include "XGD.h"
 #include "Formats/GoD.h"
 #include "AvlTree/AvlTree.h"
+#include "AvlTree/AvlIterator.h"
 #include "ImageReader/ImageReader.h"
 #include "ImageWriter/ImageWriter.h"
 #include "TitleHelper/TitleHelper.h"
@@ -25,7 +26,7 @@ public:
     GoDWriter(std::shared_ptr<ImageReader> image_reader, TitleHelper& title_helper, const ScrubType scrub_type);
     GoDWriter(const std::filesystem::path& in_dir_path, TitleHelper& title_helper);
 
-    ~GoDWriter() override;
+    ~GoDWriter() override = default;
 
     std::vector<std::filesystem::path> convert(const std::filesystem::path& out_god_path) override;
 
@@ -40,16 +41,9 @@ private:
         uint32_t file_index;
     };
 
-    std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
-    TitleHelper& title_helper_;
     std::filesystem::path in_dir_path_;
-
-    std::vector<std::unique_ptr<std::ofstream>> out_files_;
-    uint32_t current_out_file_{0};
-    uint64_t current_dir_start_{0};
-    uint64_t current_dir_position_{0};
-
+    TitleHelper& title_helper_;
     ScrubType scrub_type_{ScrubType::NONE};
 
     uint64_t prog_total_{0};
@@ -58,25 +52,25 @@ private:
     //Either no or partial scrubbing
     std::vector<std::filesystem::path> write_data_files(const std::filesystem::path& out_data_directory, const bool scrub);
 
-    //Full scrubbing
-    std::vector<std::filesystem::path> write_data_files_from_avl(const std::filesystem::path& out_data_directory);
-    void write_xiso_header(AvlTree& avl_tree);
-    void write_final_xiso_padding(const uint64_t& out_iso_size);
-    void write_tree(AvlTree::Node* node, ImageReader* image_reader, int depth);
-    void write_entry(AvlTree::Node* node, void* context, int depth);
-    void write_file(AvlTree::Node* node, ImageReader* image_reader, int depth);
-    void write_file_dir(AvlTree::Node* node, void* context, int depth);
-
+    //Full scrub/write from directory
+    std::vector<std::filesystem::path> write_data_files_from_avl(AvlTree& avl_tree, const std::filesystem::path& out_data_directory);
+    void write_iso_header(std::vector<std::unique_ptr<std::ofstream>>& out_files, AvlTree& avl_tree);
+    void write_file_from_reader(std::vector<std::unique_ptr<std::ofstream>>& out_files, const AvlTree::Node& node);
+    void write_file_from_directory(std::vector<std::unique_ptr<std::ofstream>>& out_files, const AvlTree::Node& node);
+    
     //Finalize out files
     void write_hashtables(const std::vector<std::filesystem::path>& part_paths);
     SHA1Hash finalize_hashtables(const std::vector<std::filesystem::path>& part_paths);
     void write_live_header(const std::filesystem::path& out_header_path, const std::vector<std::filesystem::path>& out_part_paths, const SHA1Hash& final_mht_hash);
 
-    //Helper functions
-    Remap remap_sector(uint64_t iso_sector);
-    Remap remap_offset(uint64_t iso_offset);
-    uint64_t to_iso_offset(uint64_t god_offset, uint32_t god_file_index);
-    void padded_seek(std::unique_ptr<std::ofstream>& out_file, uint64_t offset);
+    //Helpers
+    std::vector<std::filesystem::path> get_part_paths(const std::filesystem::path& out_directory, const uint32_t num_files);
+    void write_padding_sectors(std::vector<std::unique_ptr<std::ofstream>>& out_files, const uint32_t start_sector, const uint32_t num_sectors, const char pad_byte); 
+    Remap remap_sector(const uint64_t iso_sector);
+    Remap remap_offset(const uint64_t iso_offset);
+    uint64_t to_iso_offset(const uint64_t god_offset, const uint32_t god_file_index);
+    uint32_t num_blocks(const size_t size);
+    uint32_t num_parts(const uint32_t num_data_blocks);
     SHA1Hash compute_sha1(const char* data, size_t size);
 };
 

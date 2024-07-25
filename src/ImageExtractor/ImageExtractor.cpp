@@ -1,5 +1,5 @@
 #include "Executable/ExeTool.h"
-#include "Common/StringUtils.h"
+#include "Utils/StringUtils.h"
 #include "ImageExtractor/ImageExtractor.h"
 
 ImageExtractor::ImageExtractor(ImageReader& image_reader, TitleHelper& title_helper, const bool allowed_media_patch, const bool rename_xbe)

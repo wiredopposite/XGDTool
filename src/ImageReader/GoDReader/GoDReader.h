@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <filesystem>
+#include <fstream>
 
 #include "Formats/GoD.h"
 #include "ImageReader/ImageReader.h"

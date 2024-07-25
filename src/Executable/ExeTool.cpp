@@ -1,7 +1,8 @@
 #include <fstream>
 
 #include "XGD.h"
-#include "Common/Utils.h"
+#include "Utils/EndianUtils.h"
+#include "Utils/StringUtils.h"
 #include "Executable/ExeTool.h"
 
 ExeTool::ExeTool(const std::filesystem::path& in_exe_path) 
@@ -133,6 +134,7 @@ void ExeTool::get_xbe_cert_from_reader(ImageReader& image_reader, const std::fil
 
     if (std::memcmp(&xbe_header.magic, "XBEH", 4) != 0) 
     {
+        XGDLog(Debug) << "Magic reader from offset: " << exe_offset_ << XGDLog::Endl;
         throw XGDException(ErrCode::MISC, HERE(), "Invalid XBE header magic.");
     }
 
@@ -266,7 +268,7 @@ void ExeTool::create_xex_cert_from_xbe()
     xex_cert_.media_id = 0;
     xex_cert_.platform = 0;
     xex_cert_.executable_type = 0;
-    xex_cert_.title_id = title_id_;
+    xex_cert_.title_id = xbe_cert().title_id;
     xex_cert_.disc_count = 1;
     xex_cert_.disc_number = 1;
     EndianUtils::big_32(xex_cert_.title_id);

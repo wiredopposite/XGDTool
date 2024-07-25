@@ -7,6 +7,11 @@
 #include "InputHelper/Types.h"
 #include "InputHelper/InputHelper.h" 
 
+#include <openssl/sha.h>
+#include <vector>
+#include <iostream>
+#include <fstream>
+
 int main(int argc, char** argv)
 {
     CLI::App app{"XGDTool"};
@@ -37,12 +42,13 @@ int main(int argc, char** argv)
     app.add_flag_function("--split",         [&](int64_t) { output_settings.split = true;                    }, "Splits the resulting XISO file if it's too large for OG Xbox");
     app.add_flag_function("--rename",        [&](int64_t) { output_settings.rename_xbe = true;               }, "Patches the title field of resulting XBE files to one found in the database");
     app.add_flag_function("--attach-xbe",    [&](int64_t) { output_settings.attach_xbe = true;               }, "Generates an attach XBE file along with the output file");
-    app.add_flag_function("--am-patch",      [&](int64_t) { output_settings.allowed_media_patch = true;      }, "Patches the \"Allowed Media\" field in resulting XBE files");
+    app.add_flag_function("--am-patch",      [&](int64_t) { output_settings.allowed_media_patch = true;      }, "Patches the Allowed Media field in resulting XBE files");
     app.add_flag_function("--offline",       [&](int64_t) { output_settings.offline_mode = true;             }, "Disables online functionality");
     app.add_flag_function("--debug",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Debug);         }, "Enable debug logging");
     app.add_flag_function("--quiet",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Error);         }, "Disable all logging except for warnings and errors");
 
-    app.add_option("in_path", in_path, "Input path")->required()->check(CLI::ExistingFile);
+    // app.add_option("in_path", in_path, "Input path")->required()->check(CLI::ExistingFile);
+    app.add_option("in_path", in_path, "Input path")->required();
     app.add_option("out_directory", out_directory, "Output directory");
 
     app.set_help_flag("--help", "Print this help message and exit");

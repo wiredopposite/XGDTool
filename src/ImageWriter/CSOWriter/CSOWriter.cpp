@@ -1,4 +1,3 @@
-#include "Common/Utils.h"
 #include "AvlTree/AvlIterator.h"
 #include "ImageWriter/CSOWriter/CSOWriter.h"
 
@@ -6,16 +5,11 @@ CSOWriter::CSOWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType 
     :   image_reader_(image_reader),
         scrub_type_(scrub_type)
 {
-    if (scrub_type_ == ScrubType::FULL) 
-    {
-        avl_tree_ = std::make_unique<AvlTree>(image_reader_->name(), image_reader_->directory_entries());
-    }
-
     init_lz4f_context();
 }
 
 CSOWriter::CSOWriter(const std::filesystem::path& in_dir_path)
-    :   avl_tree_(std::make_unique<AvlTree>(in_dir_path.filename().string(), in_dir_path)) 
+    :   in_dir_path_(in_dir_path) 
 {
     init_lz4f_context();
 }
@@ -46,11 +40,21 @@ std::vector<std::filesystem::path> CSOWriter::convert(const std::filesystem::pat
     out_filepath_1_.replace_extension(".1.cso");
     out_filepath_2_.replace_extension(".2.cso");
 
-    if (avl_tree_) 
+    if (!image_reader_ && scrub_type_ == ScrubType::FULL) 
     {
-        convert_to_cso_from_avl();
-    } 
-    else 
+        AvlTree avl_tree(image_reader_->name(), image_reader_->directory_entries());
+        convert_to_cso_from_avl(avl_tree);
+    }
+    else if (!in_dir_path_.empty())
+    {
+        AvlTree avl_tree(in_dir_path_.filename().string(), in_dir_path_);
+        convert_to_cso_from_avl(avl_tree);
+    }
+    else if (!image_reader_)
+    {
+        throw XGDException(ErrCode::MISC, HERE(), "No input data to convert to CSO");
+    }
+    else
     {
         convert_to_cso(scrub_type_ == ScrubType::PARTIAL);
     }
@@ -139,17 +143,37 @@ void CSOWriter::convert_to_cso(const bool scrub)
     out_file.close();
 }
 
-void CSOWriter::convert_to_cso_from_avl() 
+void CSOWriter::write_header(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree& avl_tree)
 {
-    AvlTree& avl_tree = *avl_tree_;
+    Xiso::Header iso_header(static_cast<uint32_t>(avl_tree.root()->start_sector), 
+                            static_cast<uint32_t>(avl_tree.root()->file_size), 
+                            static_cast<uint32_t>(block_index.size()), 
+                            image_reader_ ? image_reader_->file_time() : Xiso::FileTime()); 
+
+    for (uint32_t i = 0; i < static_cast<uint32_t>(sizeof(Xiso::Header) / Xiso::SECTOR_SIZE); ++i) 
+    {
+        compress_and_write_sector_managed(out_file, block_index, reinterpret_cast<const char*>(&iso_header) + (i * Xiso::SECTOR_SIZE));
+    }
+}
+
+void CSOWriter::write_padding_sectors(std::ofstream& out_file, std::vector<uint32_t>& block_index, const uint32_t num_sectors, const char pad_byte)
+{
+    std::vector<char> pad_sector(Xiso::SECTOR_SIZE, pad_byte);
+
+    for (uint32_t i = 0; i < num_sectors; ++i) 
+    {
+        compress_and_write_sector_managed(out_file, block_index, pad_sector.data());
+    }
+
+}
+
+void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree) 
+{
     uint64_t out_iso_size = avl_tree.out_iso_size();
     uint32_t out_iso_sectors = static_cast<uint32_t>(out_iso_size / Xiso::SECTOR_SIZE);
 
     prog_total_ = avl_tree.total_bytes();
     prog_processed_ = 0;
-
-    AvlIterator avl_iter(avl_tree);
-    const std::vector<AvlIterator::Entry>& avl_entries = avl_iter.entries();
 
     std::ofstream out_file(out_filepath_1_, std::ios::binary);
     if (!out_file.is_open()) 
@@ -161,47 +185,30 @@ void CSOWriter::convert_to_cso_from_avl()
 
     out_file.write(reinterpret_cast<const char*>(&cso_header), sizeof(CSO::Header));
 
-    for (uint32_t i = 0; i < out_iso_sectors; ++i) 
+    for (uint32_t i = 0; i < out_iso_sectors + 1; ++i) 
     {
         uint32_t zero = 0;
         out_file.write(reinterpret_cast<const char*>(&zero), sizeof(uint32_t)); // Dummy block index
     }
 
-    Xiso::Header* xiso_header = new Xiso::Header(   static_cast<uint32_t>(avl_tree.root()->start_sector), 
-                                                    static_cast<uint32_t>(avl_tree.root()->file_size), 
-                                                    out_iso_sectors);
-
-    uint32_t xiso_header_sectors = static_cast<uint32_t>(sizeof(Xiso::Header) / Xiso::SECTOR_SIZE);
     std::vector<uint32_t> block_index;
+    write_header(out_file, block_index, avl_tree);
 
-    for (uint32_t i = 0; i < xiso_header_sectors; ++i) 
-    {
-        compress_and_write_sector_managed(out_file, block_index, reinterpret_cast<const char*>(xiso_header) + (i * Xiso::SECTOR_SIZE));
-    }
+    AvlIterator avl_iterator(avl_tree);
+    const std::vector<AvlIterator::Entry>& avl_entries = avl_iterator.entries();
 
-    delete xiso_header;
-
-    for (uint32_t i = 0; i < static_cast<uint32_t>(avl_entries.front().offset / Xiso::SECTOR_SIZE) - xiso_header_sectors; ++i) 
-    {
-        std::vector<char> pad_sector(Xiso::SECTOR_SIZE, 0);
-        compress_and_write_sector_managed(out_file, block_index, pad_sector.data());
-    }
+    uint32_t pad_sectors = static_cast<uint32_t>((avl_entries.front().offset - sizeof(Xiso::Header)) / Xiso::SECTOR_SIZE);
+    write_padding_sectors(out_file, block_index, pad_sectors, 0x00);
 
     for (size_t i = 0; i < avl_entries.size(); i++) 
     {
-        // Pad sectors if necessary, usually these will be directories
         if (avl_entries[i].offset > ((block_index.size() - 1) * Xiso::SECTOR_SIZE)) 
         {
-            std::vector<char> empty_buffer(Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
-
-            for (uint32_t j = 0; j < (avl_entries[i].offset / Xiso::SECTOR_SIZE) - block_index.size(); j++) 
-            {
-                compress_and_write_sector_managed(out_file, block_index, empty_buffer.data());
-            }
-
+            uint32_t pad_sectors = static_cast<uint32_t>((avl_entries[i].offset - (block_index.size() * Xiso::SECTOR_SIZE)) / Xiso::SECTOR_SIZE);
+            write_padding_sectors(out_file, block_index, pad_sectors, Xiso::PAD_BYTE);
         } 
-        else if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) < (block_index.size() - 1) || 
-                    (avl_entries[i].offset % Xiso::SECTOR_SIZE)) 
+        
+        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) < (block_index.size() - 1) || (avl_entries[i].offset % Xiso::SECTOR_SIZE)) 
         {
             throw XGDException(ErrCode::MISC, HERE(), "CCI file has become misaligned");
         }
@@ -209,80 +216,31 @@ void CSOWriter::convert_to_cso_from_avl()
         if (avl_entries[i].directory_entry) 
         {
             std::vector<char> entry_buffer;
+            size_t processed_entries = write_directory_to_buffer(avl_entries, i, entry_buffer);
+            i += processed_entries - 1;
 
-            // Write all entries in the current directory to a buffer, then write sector by sector
-            for (size_t j = i; j < avl_entries.size() - 1; ++j) 
+            for (size_t j = 0; j < entry_buffer.size(); j += Xiso::SECTOR_SIZE) 
             {
-                AvlIterator::Entry avl_entry = avl_entries[j];
-                Xiso::DirectoryEntry::Header dir_header;
-
-                dir_header.left_offset  = avl_entry.node->left_child ? static_cast<uint16_t>(avl_entry.node->left_child->offset / sizeof(uint32_t)) : 0;
-                dir_header.right_offset = avl_entry.node->right_child ? static_cast<uint16_t>(avl_entry.node->right_child->offset / sizeof(uint32_t)) : 0;
-                dir_header.start_sector = static_cast<uint32_t>(avl_entry.node->start_sector);
-                dir_header.file_size    = static_cast<uint32_t>(avl_entry.node->file_size + (avl_entry.node->subdirectory ? ((Xiso::SECTOR_SIZE - (avl_entry.node->file_size % Xiso::SECTOR_SIZE)) % Xiso::SECTOR_SIZE) : 0));
-                dir_header.attributes   = avl_entry.node->subdirectory ? Xiso::ATTRIBUTE_DIRECTORY : Xiso::ATTRIBUTE_FILE;
-                dir_header.name_length  = static_cast<uint8_t>(std::min(avl_entry.node->filename.size(), static_cast<size_t>(UINT8_MAX)));
-
-                EndianUtils::little_16(dir_header.left_offset);
-                EndianUtils::little_16(dir_header.right_offset);
-                EndianUtils::little_32(dir_header.start_sector);
-                EndianUtils::little_32(dir_header.file_size);
-
-                size_t entry_len = sizeof(Xiso::DirectoryEntry::Header) + dir_header.name_length;
-                size_t buffer_pos = entry_buffer.size();
-
-                entry_buffer.resize(buffer_pos + entry_len, Xiso::PAD_BYTE);
-
-                std::memcpy(entry_buffer.data() + buffer_pos, &dir_header, sizeof(Xiso::DirectoryEntry::Header));
-                std::memcpy(entry_buffer.data() + buffer_pos + sizeof(Xiso::DirectoryEntry::Header), avl_entry.node->filename.c_str(), dir_header.name_length);
-
-                if (i == avl_entries.size() - 1) 
-                {
-                    break;
-                }
-
-                AvlIterator::Entry next_avl_entry = avl_entries[j + 1];
-
-                if (!next_avl_entry.directory_entry ||
-                    next_avl_entry.node->directory_start != avl_entry.node->directory_start) 
-                {
-                    break;
-                }
-
-                size_t padding_len = next_avl_entry.node->offset - entry_buffer.size();
-
-                if (padding_len > 0) 
-                {
-                    entry_buffer.resize(entry_buffer.size() + padding_len, Xiso::PAD_BYTE);
-                }
-
-                i++;
+                compress_and_write_sector_managed(out_file, block_index, entry_buffer.data() + j);
             }
-
-            if (entry_buffer.size() % Xiso::SECTOR_SIZE) 
-            {
-                entry_buffer.resize(entry_buffer.size() + (Xiso::SECTOR_SIZE - (entry_buffer.size() % Xiso::SECTOR_SIZE)), Xiso::PAD_BYTE);
-            }
-
-            for (size_t j = 0; j < entry_buffer.size() / Xiso::SECTOR_SIZE; j++) 
-            {
-                compress_and_write_sector_managed(out_file, block_index, entry_buffer.data() + (j * Xiso::SECTOR_SIZE));
-            }
-
         } 
         else 
         {
-            AvlIterator::Entry avl_entry = avl_entries[i];
-
             if (image_reader_) 
             {
-                write_file_from_reader(out_file, block_index, *avl_entry.node);
+                write_file_from_reader(out_file, block_index, *avl_entries[i].node);
             } 
             else 
             {
-                write_file_from_dir(out_file, block_index, *avl_entry.node);
+                write_file_from_directory(out_file, block_index, *avl_entries[i].node);
             }
         }
+    }
+
+    if (block_index.size() < out_iso_sectors) 
+    {
+        uint32_t pad_sectors = out_iso_sectors - static_cast<uint32_t>(block_index.size());
+        write_padding_sectors(out_file, block_index, pad_sectors, 0x00);
     }
 
     finalize_out_files(out_file, block_index);
@@ -312,7 +270,7 @@ void CSOWriter::write_file_from_reader(std::ofstream& out_file, std::vector<uint
     }
 }
 
-void CSOWriter::write_file_from_dir(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node) 
+void CSOWriter::write_file_from_directory(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node) 
 {
     std::ifstream in_file(node.path, std::ios::binary);
     if (!in_file.is_open()) 
@@ -410,7 +368,7 @@ void CSOWriter::finalize_out_files(std::ofstream& out_file, std::vector<uint32_t
 
     block_index.push_back(static_cast<uint32_t>(out_file.tellp() >> CSO::INDEX_ALIGNMENT));
 
-    IOUtils::pad_to_modulus(out_file, 0x400, 0x00);
+    pad_to_modulus(out_file, CSO::FILE_MODULUS, 0x00);
 
     if (std::filesystem::exists(out_filepath_2_)) 
     {
@@ -430,7 +388,7 @@ void CSOWriter::finalize_out_files(std::ofstream& out_file, std::vector<uint32_t
     }
 
     out_file.seekp(0, std::ios::end);
-    IOUtils::pad_to_modulus(out_file, 0x400, 0x00);
+    pad_to_modulus(out_file, CSO::FILE_MODULUS, 0x00);
 
     block_index.clear();
 }
@@ -453,4 +411,21 @@ std::vector<std::filesystem::path> CSOWriter::out_paths()
     }
 
     return { out_filepath_1_ };
+}
+
+void CSOWriter::pad_to_modulus(std::ofstream& out_file, uint32_t modulus, char pad_byte) 
+{
+    if ((out_file.tellp() % modulus) == 0) 
+    {
+        return;
+    }
+
+    size_t padding_len = modulus - (out_file.tellp() % modulus);
+    std::vector<char> buffer(padding_len, pad_byte);
+
+    out_file.write(buffer.data(), padding_len); 
+    if (out_file.fail()) 
+    {
+        throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write padding bytes");
+    }
 }

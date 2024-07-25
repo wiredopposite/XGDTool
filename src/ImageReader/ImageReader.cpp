@@ -4,9 +4,9 @@
 #include "ImageReader/CSOReader/CSOReader.h"
 #include "ImageReader/ImageReader.h"
 #include "XGD.h"
-#include "Common/StringUtils.h"
+#include "Utils/StringUtils.h"
 
-std::shared_ptr<ImageReader> ReaderFactory::create(FileType in_file_type, const std::vector<std::filesystem::path>& paths) 
+std::shared_ptr<ImageReader> ImageReader::create_instance(FileType in_file_type, const std::vector<std::filesystem::path>& paths) 
 {
     switch (in_file_type) 
     {
@@ -61,6 +61,15 @@ Platform ImageReader::platform()
     return platform_;
 }
 
+Xiso::FileTime ImageReader::file_time() 
+{
+    read_bytes( image_offset() + Xiso::MAGIC_OFFSET + Xiso::MAGIC_DATA_LEN + sizeof(uint32_t) * 2, 
+                sizeof(Xiso::FileTime), 
+                reinterpret_cast<char*>(&file_time_));
+
+    return file_time_;
+}
+
 uint64_t ImageReader::total_file_bytes() 
 {
     if (total_file_bytes_ == 0) 
@@ -96,12 +105,6 @@ const std::unordered_set<uint32_t>& ImageReader::data_sectors()
 
     auto max_data_sector_it = std::max_element(data_sectors_.begin(), data_sectors_.end());
     max_data_sector_ = (max_data_sector_it != data_sectors_.end()) ? *max_data_sector_it : 0;
-
-    XGDLog(Debug)   << "Max data sector: " 
-                    << max_data_sector_ 
-                    << "\nResulting image size: " 
-                    << (static_cast<uint64_t>(static_cast<uint64_t>(max_data_sector_ + 1) * Xiso::SECTOR_SIZE) - image_offset()) / 0x400 
-                    << " KB" << XGDLog::Endl;
 
     std::unordered_set<uint32_t> security_sectors;
 
@@ -170,18 +173,13 @@ void ImageReader::populate_directory_entries(bool exe_only)
         {
             if (!(read_entry.header.attributes & Xiso::ATTRIBUTE_DIRECTORY) && read_entry.header.file_size > 0)
             {
-                if (StringUtils::case_insensitive_search(read_entry.filename, "default.xex"))
+                if (StringUtils::case_insensitive_search(read_entry.filename, "default.xex") ||
+                    StringUtils::case_insensitive_search(read_entry.filename, "default.xbe"))
                 {
                     read_entry.path = read_entry.filename;
                     executable_entry_ = read_entry;
                     return;
-                }
-                else if (StringUtils::case_insensitive_search(read_entry.filename, "default.xbe"))
-                {
-                    read_entry.path = read_entry.filename;
-                    executable_entry_ = read_entry;
-                    return;
-                }   
+                } 
             }
         }
         else
@@ -251,7 +249,7 @@ void ImageReader::populate_data_sectors()
     std::vector<Xiso::DirectoryEntry> unprocessed_entries;
     unprocessed_entries.push_back(root_entry);
 
-    XGDLog() << "Getting data sectors..." << XGDLog::Endl;
+    XGDLog() << "Reading data sectors" << XGDLog::Endl;
 
     while (!unprocessed_entries.empty()) 
     {
@@ -317,8 +315,7 @@ bool ImageReader::get_security_sectors(std::unordered_set<uint32_t>& out_securit
 {
     out_security_sectors.clear();
 
-    const uint32_t end_sector = 0x345B60;
-    if (total_sectors() < end_sector) 
+    if (total_sectors() != Xiso::REDUMP_GAME_SECTORS && total_sectors() != Xiso::REDUMP_TOTAL_SECTORS)
     {
         return false;
     }
@@ -327,9 +324,11 @@ bool ImageReader::get_security_sectors(std::unordered_set<uint32_t>& out_securit
     uint32_t sector_offset = static_cast<uint32_t>(image_offset() / Xiso::SECTOR_SIZE);
     bool flag = false;
     uint32_t start = 0;
+    const uint32_t end_sector = 0x345B60;
+
     std::vector<char> sector_buffer(Xiso::SECTOR_SIZE);
 
-    XGDLog() << "Getting security sectors..." << XGDLog::Endl;
+    XGDLog() << "Reading security sectors" << XGDLog::Endl;
     
     for (uint32_t sector_index = 0; sector_index <= end_sector; ++sector_index) 
     {

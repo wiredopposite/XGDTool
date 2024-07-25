@@ -3,22 +3,29 @@
 #include "XGD.h"
 #include "AvlTree/AvlTree.h"
 
-void AvlTree::generate_from_filesystem(const std::filesystem::path& in_directory, Node** dir_node) {
-    for (const auto& entry : std::filesystem::directory_iterator(in_directory)) {
+void AvlTree::generate_from_filesystem(const std::filesystem::path& in_directory, Node** dir_node) 
+{
+    for (const auto& entry : std::filesystem::directory_iterator(in_directory)) 
+    {
         const auto& entry_path = entry.path();
         const auto& entry_filename = entry_path.filename().string();
 
         Node* current_node = new Node(entry_filename);
         current_node->path = std::filesystem::absolute(entry_path);
 
-        if (std::filesystem::is_directory(entry_path)) {
+        if (std::filesystem::is_directory(entry_path)) 
+        {
             generate_from_filesystem(entry_path, &current_node->subdirectory);
 
-            if (!current_node->subdirectory) {
+            if (!current_node->subdirectory) 
+            {
                 current_node->subdirectory = EMPTY_SUBDIRECTORY;
             }
-        } else if (std::filesystem::is_regular_file(entry_path)) {
-            if (std::filesystem::file_size(entry_path) > UINT32_MAX) {
+        } 
+        else if (std::filesystem::is_regular_file(entry_path)) 
+        {
+            if (std::filesystem::file_size(entry_path) > UINT32_MAX) 
+            {
                 XGDLog(Error) << "Warning: File size exceeds maximum allowed in XISO format:.\nSkipping: " << entry_path.string() << XGDLog::Endl;
                 delete current_node;
                 continue;
@@ -28,34 +35,42 @@ void AvlTree::generate_from_filesystem(const std::filesystem::path& in_directory
 
             total_bytes_ += current_node->file_size;
             ++total_files_;
-        } else {
+        } 
+        else 
+        {
             delete current_node;
             continue;
         }
 
-        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) {
+        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) 
+        {
             throw XGDException(ErrCode::AVL_INSERT, HERE(), entry_path.string());
         }
     }
 }
 
-void AvlTree::generate_from_directory_entries(std::vector<Xiso::DirectoryEntry>& directory_entries, Node** dir_node) {
-    for (auto it = directory_entries.begin(); it != directory_entries.end(); ) {
+void AvlTree::generate_from_directory_entries(std::vector<Xiso::DirectoryEntry>& directory_entries, Node** dir_node) 
+{
+    for (auto it = directory_entries.begin(); it != directory_entries.end(); ) 
+    {
         Node* current_node = new Node(it->filename);
         current_node->old_start_sector = it->header.start_sector;
         current_node->file_size = it->header.file_size;
         current_node->path = it->path;
 
-        if (it->header.attributes & Xiso::ATTRIBUTE_DIRECTORY) {
+        if (it->header.attributes & Xiso::ATTRIBUTE_DIRECTORY) 
+        {
             std::vector<Xiso::DirectoryEntry> subdirectory_entries;
             std::string current_path_str = it->path.string();
 
             // Create a new vector of entries that are children of the current directory
             // Delete those entries from the original vector so they're not processed again
             auto end_it = std::remove_if(directory_entries.begin(), directory_entries.end(),
-                                        [&](const Xiso::DirectoryEntry& entry) {
+                                        [&](const Xiso::DirectoryEntry& entry) 
+                                        {
                                             std::string entry_path_str = entry.path.string();
-                                            if (entry_path_str.compare(0, current_path_str.length(), current_path_str) == 0 && entry_path_str != current_path_str) {
+                                            if (entry_path_str.compare(0, current_path_str.length(), current_path_str) == 0 && entry_path_str != current_path_str) 
+                                            {
                                                 subdirectory_entries.push_back(entry);
                                                 return true;
                                             }
@@ -65,24 +80,30 @@ void AvlTree::generate_from_directory_entries(std::vector<Xiso::DirectoryEntry>&
             directory_entries.erase(end_it, directory_entries.end());
 
             // Call itself again with just the child entries
-            if (subdirectory_entries.size() > 0) {
+            if (subdirectory_entries.size() > 0) 
+            {
                 generate_from_directory_entries(subdirectory_entries, &current_node->subdirectory);
             }
 
-            if (!current_node->subdirectory) {
+            if (!current_node->subdirectory) 
+            {
                 current_node->subdirectory = EMPTY_SUBDIRECTORY;
             }
-        } else if (it->header.file_size > 0) {
+        } 
+        else if (it->header.file_size > 0) 
+        {
             total_bytes_ += current_node->file_size;
             ++total_files_;
         } 
-        else {
+        else 
+        {
             delete current_node;
             ++it;
             continue;
         }
 
-        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) {
+        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) 
+        {
             throw XGDException(ErrCode::AVL_INSERT, HERE(), "Entry path: " + it->path.string() + " Filename: " + current_node->filename);
         }
 

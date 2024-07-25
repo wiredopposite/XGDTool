@@ -1,4 +1,4 @@
-#include "Common/StringUtils.h"
+#include "Utils/StringUtils.h"
 #include "InputHelper/InputHelper.h"
 
 bool InputHelper::has_extension(const std::filesystem::path& path, const std::string& extension) 
@@ -150,4 +150,54 @@ std::vector<std::filesystem::path> InputHelper::find_split_filepaths(const std::
         }
     }
     return { in_filepath };
+}
+
+bool InputHelper::is_part_2_file(const std::filesystem::path& path) 
+{
+    std::string stem_str = path.stem().string();
+
+    if (stem_str.size() > 2 && stem_str.substr(stem_str.size() - 2) == ".2") 
+    {
+        return true;
+    }
+    return false;
+}
+
+std::filesystem::path InputHelper::get_output_path(const std::filesystem::path& out_directory, TitleHelper& title_helper)
+{
+    std::filesystem::path out_path = out_directory;
+
+    switch (output_settings_.out_file_type)
+    {
+        case FileType::DIR:
+            out_path /= title_helper.folder_name();
+            break;
+        case FileType::ISO:
+            if (!output_settings_.xemu_paths) 
+            {
+                out_path /= title_helper.folder_name();
+            } 
+            out_path /= title_helper.iso_name() + ".iso";
+            break;
+        case FileType::CCI:
+            out_path /= title_helper.folder_name();
+            out_path /= title_helper.iso_name() + ".cci";
+            break;
+        case FileType::CSO:
+            out_path /= title_helper.folder_name();
+            out_path /= title_helper.iso_name() + ".cso";
+            break;
+        case FileType::ZAR:
+            out_path /= title_helper.iso_name() + ".zar";
+            break;
+        case FileType::XBE:
+            out_path /= "default.xbe";
+            break;
+        case FileType::GoD:
+            out_path /= title_helper.god_folder_name();
+            break;
+        default:
+            throw XGDException(ErrCode::MISC, HERE(), "Invalid output file type");
+    }
+    return out_path;
 }

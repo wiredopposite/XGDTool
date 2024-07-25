@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "XGD.h"
-#include "Common/StringUtils.h"
 #include "ImageReader/ImageReader.h"
 #include "InputHelper/Types.h"
 #include "Executable/ExeTool.h"

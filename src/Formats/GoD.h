@@ -18,10 +18,8 @@ namespace GoD {
     static constexpr uint32_t BLOCK_SIZE = 0x1000;
     static constexpr uint32_t BLOCKS_PER_PART = 41616;
     static constexpr uint32_t DATA_BLOCKS_PER_SHT = 204;
-    // static constexpr uint32_t FREE_SECTOR = 0x24;
     static constexpr uint32_t SHT_PER_MHT = 203;
     static constexpr uint32_t DATA_BLOCKS_PER_PART = DATA_BLOCKS_PER_SHT * SHT_PER_MHT;
-    // static constexpr uint64_t LIVE_HEADER_SIZE = 0xb000;
 
     struct Type {
         static constexpr uint32_t GAMES_ON_DEMAND = 0x7000;

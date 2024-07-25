@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "XGD.h"
-#include "Common/StringUtils.h"
+#include "Utils/StringUtils.h"
 
 namespace StringUtils {
 

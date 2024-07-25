@@ -11,6 +11,7 @@ XGDTool is a command line OG and 360 Xbox disc utility, capable of converting di
     - ZAR
 - Seamless conversion for almost all formats. For example, you can directly convert a GoD image to a ZAR archive, or an extracted game to a CCI archive, all without writing any temporary files. ZAR as an input format is the only one that doesn't support this seamless conversion yet.
 - Batch processing, a folder full of different game formats can be batch converted to a single format with one command line argument.
+- Automatically finds split files when only one part is provided as an input path.
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
 - Attach XBE generation.
 - Online database lookup for accurate file naming (can be disabled).
@@ -29,10 +30,10 @@ These arguments are mutually exclusive, you can only use on at a time.
 - ```--cso```        Creates a CSO archive (automatically split if too large for Xbox)
 - ```--zar```        Creates a ZAR archive
 - ```--xbe```        Generates an attach XBE file, does not convert the input file
-- ```--ogxbox```    Choose the best format and settings for use with OG Xbox
-- ```--xbox360```   Choose the best format and settings for use with Xbox 360
-- ```--xemu```   Choose the best format and settings for use with Xemu
-- ```--xenia```  Choose the best format and settings for use with Xenia
+- ```--ogxbox```    Automatically choose the best format and settings for use with OG Xbox
+- ```--xbox360```   Automatically choose the best format and settings for use with Xbox 360
+- ```--xemu```   Automatically choose the best format and settings for use with Xemu
+- ```--xenia```  Automatically choose the best format and settings for use with Xenia
 
 Information:
 - ```--version``` Print version information

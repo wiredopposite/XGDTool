@@ -6,7 +6,7 @@
 #include <filesystem>
 
 #include "XGD.h"
-#include "Common/EndianUtils.h"
+#include "Utils/EndianUtils.h"
 
 namespace Xiso {
 
@@ -16,10 +16,9 @@ namespace Xiso {
     constexpr uint32_t FILE_MODULUS = 0x10000;
 
     constexpr uint32_t REDUMP_VIDEO_SECTORS = 0x30600;
-    constexpr uint32_t REDUMP_GAME_SECTORS  = 0x3A4D50;
-    constexpr uint32_t REDUMP_END_SECTOR    = 0x345B60;
-    constexpr uint32_t SECTOR_SHIFT         = 11;
-    constexpr uint64_t SPLIT_MARGIN = 0xFF000000; 
+    constexpr uint32_t REDUMP_TOTAL_SECTORS = 0x3A4D50;
+    constexpr uint32_t REDUMP_GAME_SECTORS  = REDUMP_TOTAL_SECTORS - REDUMP_VIDEO_SECTORS;
+    constexpr uint64_t SPLIT_MARGIN         = 0xFF000000; 
 
     constexpr char     SYSTEM_UPDATE_DIR[] = "$SystemUpdate";
 
@@ -133,8 +132,8 @@ namespace Xiso {
         char reserved4[Xiso::MAGIC_UNUSED_LEN];
         char magic2[20];
 
-        Header(const uint32_t in_root_sector, const uint32_t in_root_size, const uint32_t in_total_sectors)
-            : root_sector(in_root_sector), root_size(in_root_size) 
+        Header(const uint32_t in_root_sector, const uint32_t in_root_size, const uint32_t in_total_sectors, const FileTime in_file_time)
+            : root_sector(in_root_sector), root_size(in_root_size), file_time(in_file_time)
         {
 
             std::memcpy(optimized_tag, XGD::OPTIMIZED_TAG, sizeof(optimized_tag));

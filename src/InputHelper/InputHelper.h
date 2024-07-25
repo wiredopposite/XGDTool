@@ -29,7 +29,7 @@ private:
     std::filesystem::path output_directory_;
     std::vector<std::filesystem::path> failed_inputs_;
 
-    std::vector<std::filesystem::path> create_image(FileType out_file_type, const InputInfo& input_info);   
+    std::vector<std::filesystem::path> create_image(const InputInfo& input_info);   
     std::vector<std::filesystem::path> create_dir(const InputInfo& input_info);
     std::vector<std::filesystem::path> create_attach_xbe(const InputInfo& input_info);
 
@@ -37,9 +37,11 @@ private:
     bool is_extracted_dir(const std::filesystem::path& path);
     bool is_god_dir_helper(const std::filesystem::path& path, int current_depth, int max_depth);
     bool is_god_dir(const std::filesystem::path& path);
-    FileType get_filetype(const std::filesystem::path& path);
     bool is_batch_dir(const std::filesystem::path& path);
+    bool is_part_2_file(const std::filesystem::path& path);
+    FileType get_filetype(const std::filesystem::path& path);
     std::vector<std::filesystem::path> find_split_filepaths(const std::filesystem::path& in_filepath);
+    std::filesystem::path get_output_path(const std::filesystem::path& out_directory, TitleHelper& title_helper);
 };
 
 #endif // _INPUT_HELPER_H_

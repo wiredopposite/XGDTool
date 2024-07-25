@@ -18,6 +18,8 @@ class ImageReader
 public:
     virtual ~ImageReader() = default;
 
+    static std::shared_ptr<ImageReader> create_instance(FileType in_file_type, const std::vector<std::filesystem::path>& in_paths);
+
     virtual void read_sector(const uint32_t sector, char* out_buffer) = 0;
     virtual void read_bytes(const uint64_t offset, const size_t size, char* out_buffer) = 0;
 
@@ -32,6 +34,7 @@ public:
     uint32_t max_data_sector();
     uint64_t total_file_bytes();
     Platform platform();
+    Xiso::FileTime file_time();
 
 private:
     std::vector<Xiso::DirectoryEntry> directory_entries_;
@@ -41,14 +44,11 @@ private:
     uint32_t max_data_sector_{0};
     uint64_t total_file_bytes_{0};
     Platform platform_{Platform::UNKNOWN};
+    Xiso::FileTime file_time_{};
 
     void populate_directory_entries(bool exe_only);
     void populate_data_sectors();
     bool get_security_sectors(std::unordered_set<uint32_t>& out_security_sectors);
 };
-
-namespace ReaderFactory {
-    std::shared_ptr<ImageReader> create(FileType in_file_type, const std::vector<std::filesystem::path>& in_paths);
-}
 
 #endif // _IMAGE_READER_H_

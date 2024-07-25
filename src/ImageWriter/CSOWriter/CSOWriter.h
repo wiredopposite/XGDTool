@@ -2,6 +2,9 @@
 #define _CSO_WRITER_H_
 
 #include <cstdint>
+#include <vector>
+#include <fstream>
+#include <filesystem>
 
 #include <lz4frame.h>
 
@@ -25,8 +28,8 @@ private:
     const int ALIGN_B = 1 << CSO::INDEX_ALIGNMENT;
     const int ALIGN_M = ALIGN_B - 1;
 
-    std::unique_ptr<AvlTree> avl_tree_{nullptr};
     std::shared_ptr<ImageReader> image_reader_{nullptr};
+    std::filesystem::path in_dir_path_; 
 
     ScrubType scrub_type_{ScrubType::NONE};
 
@@ -50,15 +53,18 @@ private:
     void init_lz4f_context();
 
     void convert_to_cso(const bool scrub);
-    void convert_to_cso_from_avl();
-
+    void convert_to_cso_from_avl(AvlTree& avl_tree);
+    void write_header(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree& avl_tree);
     void write_file_from_reader(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node);
-    void write_file_from_dir(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node);
+    void write_file_from_directory(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node);
 
     void compress_and_write_sector(std::ofstream& out_file, std::vector<uint32_t>& block_index, const char* in_buffer);
     void compress_and_write_sector_managed(std::ofstream& out_file, std::vector<uint32_t>& block_index, const char* in_buffer);
 
     void finalize_out_files(std::ofstream& out_file, std::vector<uint32_t>& block_index);
+
+    void write_padding_sectors(std::ofstream& out_file, std::vector<uint32_t>& block_index, const uint32_t num_sectors, const char pad_byte);
+    void pad_to_modulus(std::ofstream& out_file, uint32_t modulus, char pad_byte);
 
     std::vector<std::filesystem::path> out_paths();
 };

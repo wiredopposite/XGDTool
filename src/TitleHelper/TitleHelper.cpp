@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <openssl/sha.h>
 
+#include "Utils/StringUtils.h"
 #include "TitleHelper/TitleHelper.h"
 
 TitleHelper::TitleHelper(std::shared_ptr<ImageReader> image_reader, bool offline_mode) 
@@ -25,7 +26,7 @@ void TitleHelper::initialize()
 
     if (image_reader_)
     {
-        exe_tool = std::make_unique<ExeTool>(*image_reader_.get(), image_reader_->executable_entry().path); 
+        exe_tool = std::make_unique<ExeTool>(*image_reader_, image_reader_->executable_entry().path); 
     }
     else
     {

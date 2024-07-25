@@ -5,7 +5,6 @@
 #include <lz4hc.h>
 
 #include "XGD.h"
-#include "Common/Utils.h"
 #include "ImageReader/CCIReader/CCIReader.h"
 
 CCIReader::CCIReader(const std::vector<std::filesystem::path>& in_cci_paths) 

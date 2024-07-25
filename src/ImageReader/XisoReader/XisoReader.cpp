@@ -3,7 +3,6 @@
 #include <numeric>
 
 #include "XGD.h"
-#include "Common/Utils.h"
 #include "ImageReader/XisoReader/XisoReader.h"
 
 XisoReader::XisoReader(const std::vector<std::filesystem::path>& in_xiso_paths) 
@@ -39,6 +38,7 @@ void XisoReader::read_sector(const uint32_t sector, char* out_buffer)
         std::cerr << "Failed to read sector: " << sector 
                   << ", Bytes read: " << in_file_.gcount() 
                   << ", Expected bytes: " << Xiso::SECTOR_SIZE << std::endl;
+
         throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read sector from input file");
     }
 }

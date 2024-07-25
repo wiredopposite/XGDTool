@@ -58,9 +58,8 @@ set(SRC
     ${SRC_DIR}/SplitFStream/SplitIFStream.cpp
     ${SRC_DIR}/SplitFStream/SplitOFStream.cpp
 
-    ${SRC_DIR}/Common/EndianUtils.cpp
-    ${SRC_DIR}/Common/StringUtils.cpp
-    ${SRC_DIR}/Common/IOUtils.cpp
+    ${SRC_DIR}/Utils/EndianUtils.cpp
+    ${SRC_DIR}/Utils/StringUtils.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

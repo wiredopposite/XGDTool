@@ -3,13 +3,18 @@
 #include <numeric>
 
 #include "XGD.h"
-#include "Common/Utils.h"
+#include "Utils/StringUtils.h"
 #include "ImageReader/GoDReader/GoDReader.h"
 
 GoDReader::GoDReader(const std::vector<std::filesystem::path>& in_god_directory) 
     : in_god_directory_(in_god_directory.front()) 
 {
     populate_data_files(in_god_directory_, 5);
+
+    std::sort(in_god_data_paths_.begin(), in_god_data_paths_.end(), [](const auto& a, const auto& b) 
+    {
+        return a.string() < b.string();
+    });
 
     auto last_blocks = std::filesystem::file_size(in_god_data_paths_.back()) / GoD::BLOCK_SIZE;
     auto last_hash_index = (last_blocks - 1) / (GoD::DATA_BLOCKS_PER_SHT + 1);
@@ -26,6 +31,8 @@ GoDReader::GoDReader(const std::vector<std::filesystem::path>& in_god_directory)
             throw XGDException(ErrCode::FILE_OPEN, HERE(), data_path.string());
         }
     }
+
+    XGDLog(Debug) << "GoD data files opened: " << in_files_.size() << "\n";
 }
 
 GoDReader::~GoDReader() 
@@ -88,6 +95,7 @@ void GoDReader::read_sector(const uint32_t sector, char* out_buffer)
     {
         throw XGDException(ErrCode::FILE_READ, HERE());
     }
+    XGDLog(Debug) << "Read sector " << sector << " from file " << remap.file_index << " at offset " << remap.offset << "\n";
 }
 
 void GoDReader::read_bytes(const uint64_t offset, const size_t size, char* out_buffer) 

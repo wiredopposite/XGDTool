@@ -48,7 +48,9 @@ public:
         }
     };
 
-    using TraversalCallback = std::function<void(Node*, void*, int)>;
+    template <typename ContextType>
+    using TraversalCallback = std::function<void(AvlTree::Node*, ContextType*, int)>;
+
     enum class TraversalMethod { PREFIX, INFIX, POSTFIX };
     
     AvlTree(const std::string& root_name, std::vector<Xiso::DirectoryEntry> directory_entries); 
@@ -56,8 +58,8 @@ public:
 
     Node* root() { return &root_; }
 
-    static void traverse(Node* root, TraversalMethod method, const TraversalCallback callback, void* context, int depth);
-    // void collect_nodes(AvlTree::Node* node, std::vector<AvlTree::Node*>* context, int depth);
+    template <typename ContextType>
+    static void traverse(Node* root, TraversalMethod method, const TraversalCallback<ContextType>& callback, ContextType* context, int depth);
 
     void print_tree_info();
 
@@ -85,15 +87,12 @@ private:
     void rotate_left(Node** node);
     void rotate_right(Node** node);
     int compare_key(const std::string& lhs, const std::string& rhs);
-    // int compare_key(const  char *in_lhs, const char *in_rhs );
 
     void print_tree(Node* node, void* context, int depth);
     uint64_t num_sectors(uint64_t bytes);
 
     void generate_from_filesystem(const std::filesystem::path& in_directory, Node** dir_node);
     void generate_from_directory_entries(std::vector<Xiso::DirectoryEntry>& directory_entries, Node** dir_node); 
-    // void generate_from_mock_filesystem(const std::filesystem::path& in_directory, std::vector<Xiso::DirectoryEntry>& directory_entries, Node** dir_node);
-    // void generate_from_hierarchy(const std::shared_ptr<DirectoryNode>& node, Node** dir_node);
 
     void calculate_directory_requirements(Node* node, void* context, int depth);
     void calculate_directory_offsets(Node* node, uint64_t* current_sector, int depth);
@@ -105,6 +104,35 @@ private:
     void collect_nodes(AvlTree::Node* node, std::vector<AvlTree::Node*>* context, int depth);
     uint64_t calculate_iso_size(AvlTree::Node* root_node);
 };
+
+template <typename ContextType>
+void AvlTree::traverse(Node* root, TraversalMethod method, const TraversalCallback<ContextType>& callback, ContextType* context, int depth) 
+{
+    if (!root || root == EMPTY_SUBDIRECTORY) 
+    {
+        return;
+    }
+    switch (method) 
+    {
+        case TraversalMethod::PREFIX:
+            callback(root, context, depth);
+            traverse(root->left_child, method, callback, context, depth + 1);
+            traverse(root->right_child, method, callback, context, depth + 1);
+            break;
+        case TraversalMethod::INFIX:
+            traverse(root->left_child, method, callback, context, depth + 1);
+            callback(root, context, depth);
+            traverse(root->right_child, method, callback, context, depth + 1);
+            break;
+        case TraversalMethod::POSTFIX:
+            traverse(root->left_child, method, callback, context, depth + 1);
+            traverse(root->right_child, method, callback, context, depth + 1);	
+            callback(root, context, depth);
+            break;
+        default:
+            break;
+    }
+}
 
 /*  The AVL tree is constructed by creating a separate tree for each directory within the root directory,
     each separate tree's root node is assigned to it's parent directory node's subdirectory pointer.
