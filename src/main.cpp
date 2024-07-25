@@ -24,13 +24,13 @@ int main(int argc, char** argv)
 
     auto* output_format_group = app.add_option_group("Output Format Options", "Specify the output format")->require_option(1);
 
-    output_format_group->add_flag_function("--extract",  [&](int64_t) { output_settings.out_file_type = FileType::DIR; }, "Extracts all files to a directory");
-    output_format_group->add_flag_function("--xiso",     [&](int64_t) { output_settings.out_file_type = FileType::ISO; }, "Creates an Xiso image");
-    output_format_group->add_flag_function("--god",      [&](int64_t) { output_settings.out_file_type = FileType::GoD; }, "Creates a Games on Demand image/directory structure");
-    output_format_group->add_flag_function("--cci",      [&](int64_t) { output_settings.out_file_type = FileType::CCI; }, "Creates a CCI archive");
-    output_format_group->add_flag_function("--cso",      [&](int64_t) { output_settings.out_file_type = FileType::CSO; }, "Creates a CSO archive");
-    output_format_group->add_flag_function("--zar",      [&](int64_t) { output_settings.out_file_type = FileType::ZAR; }, "Creates a ZAR archive");
-    output_format_group->add_flag_function("--xbe",      [&](int64_t) { output_settings.out_file_type = FileType::XBE; }, "Generates an attach XBE file");
+    output_format_group->add_flag_function("--extract",  [&](int64_t) { output_settings.file_type = FileType::DIR; }, "Extracts all files to a directory");
+    output_format_group->add_flag_function("--xiso",     [&](int64_t) { output_settings.file_type = FileType::ISO; }, "Creates an Xiso image");
+    output_format_group->add_flag_function("--god",      [&](int64_t) { output_settings.file_type = FileType::GoD; }, "Creates a Games on Demand image/directory structure");
+    output_format_group->add_flag_function("--cci",      [&](int64_t) { output_settings.file_type = FileType::CCI; }, "Creates a CCI archive");
+    output_format_group->add_flag_function("--cso",      [&](int64_t) { output_settings.file_type = FileType::CSO; }, "Creates a CSO archive");
+    output_format_group->add_flag_function("--zar",      [&](int64_t) { output_settings.file_type = FileType::ZAR; }, "Creates a ZAR archive");
+    output_format_group->add_flag_function("--xbe",      [&](int64_t) { output_settings.file_type = FileType::XBE; }, "Generates an attach XBE file");
 
     output_format_group->add_flag_function("--ogxbox",   [&](int64_t) { auto_format = AutoFormat::OGXBOX;  }, "Choose format and settings for use with OG Xbox");
     output_format_group->add_flag_function("--xbox360",  [&](int64_t) { auto_format = AutoFormat::XBOX360; }, "Choose format and settings for use with Xbox 360");
@@ -47,7 +47,6 @@ int main(int argc, char** argv)
     app.add_flag_function("--debug",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Debug);         }, "Enable debug logging");
     app.add_flag_function("--quiet",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Error);         }, "Disable all logging except for warnings and errors");
 
-    // app.add_option("in_path", in_path, "Input path")->required()->check(CLI::ExistingFile);
     app.add_option("in_path", in_path, "Input path")->required();
     app.add_option("out_directory", out_directory, "Output directory");
 
@@ -65,16 +64,16 @@ int main(int argc, char** argv)
     switch (auto_format) 
     {
         case AutoFormat::OGXBOX:
-            output_settings.out_file_type = FileType::DIR;
+            output_settings.file_type = FileType::DIR;
             output_settings.allowed_media_patch = true;
             output_settings.rename_xbe = true;
             break;
         case AutoFormat::XBOX360:
-            output_settings.out_file_type = FileType::GoD;
+            output_settings.file_type = FileType::GoD;
             output_settings.scrub_type = ScrubType::FULL;
             break;
         case AutoFormat::XEMU:
-            output_settings.out_file_type = FileType::ISO;
+            output_settings.file_type = FileType::ISO;
             output_settings.scrub_type = ScrubType::FULL;
             output_settings.attach_xbe = false;
             output_settings.allowed_media_patch = false;
@@ -82,7 +81,7 @@ int main(int argc, char** argv)
             output_settings.xemu_paths = true;
             break;
         case AutoFormat::XENIA:
-            output_settings.out_file_type = FileType::ZAR;
+            output_settings.file_type = FileType::ZAR;
             break;
         default:
             break;

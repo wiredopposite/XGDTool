@@ -29,7 +29,8 @@ bool InputHelper::is_extracted_dir(const std::filesystem::path& path)
     return false;
 }
 
-bool InputHelper::is_god_dir_helper(const std::filesystem::path& path, int current_depth, int max_depth) {
+bool InputHelper::is_god_dir_helper(const std::filesystem::path& path, int current_depth, int max_depth) 
+{
     if (current_depth > max_depth) 
     {
         return false;
@@ -167,7 +168,7 @@ std::filesystem::path InputHelper::get_output_path(const std::filesystem::path& 
 {
     std::filesystem::path out_path = out_directory;
 
-    switch (output_settings_.out_file_type)
+    switch (output_settings_.file_type)
     {
         case FileType::DIR:
             out_path /= title_helper.folder_name();

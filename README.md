@@ -1,6 +1,8 @@
 # XGDTool
 XGDTool is a command line OG and 360 Xbox disc utility, capable of converting discs to and from any mainstream format.
 
+This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better! Currently it's Windows only, but Linux and Mac support are planned.
+
 ## Features
 - Supports convertion between following formats:
     - ISO / XISO
@@ -8,12 +10,12 @@ XGDTool is a command line OG and 360 Xbox disc utility, capable of converting di
     - GoD / Games on Demand
     - CCI
     - CSO
-    - ZAR
-- Seamless conversion for almost all formats. For example, you can directly convert a GoD image to a ZAR archive, or an extracted game to a CCI archive, all without writing any temporary files. ZAR as an input format is the only one that doesn't support this seamless conversion yet.
+    - ZAR (As output format only)
+- Seamless conversion, you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, all without writing any temporary files.
 - Batch processing, a folder full of different game formats can be batch converted to a single format with one command line argument.
-- Automatically finds split files when only one part is provided as an input path.
+- Automatically finds split files when only one part is provided as an input path, assuming they're named in this format: ```name.1.extension``` ```name.2.extension```.
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
-- Attach XBE generation.
+- Attach XBE generation for OG Xbox.
 - Online database lookup for accurate file naming (can be disabled).
 
 ## Usage
@@ -23,29 +25,29 @@ Settings and output directory are optionally.
 
 ### Output format arguments
 These arguments are mutually exclusive, you can only use on at a time.
-- ```--extract```    Extracts all files to a directory
-- ```--xiso```       Creates an Xiso image
-- ```--god```        Creates a Games on Demand image/directory structure
-- ```--cci```        Creates a CCI archive (automatically split if too large for Xbox)
-- ```--cso```        Creates a CSO archive (automatically split if too large for Xbox)
-- ```--zar```        Creates a ZAR archive
-- ```--xbe```        Generates an attach XBE file, does not convert the input file
-- ```--ogxbox```    Automatically choose the best format and settings for use with OG Xbox
-- ```--xbox360```   Automatically choose the best format and settings for use with Xbox 360
-- ```--xemu```   Automatically choose the best format and settings for use with Xemu
-- ```--xenia```  Automatically choose the best format and settings for use with Xenia
+- ```--extract```   Extracts all files to a directory
+- ```--xiso```      Creates an Xiso image
+- ```--god```       Creates a Games on Demand image/directory structure
+- ```--cci```       Creates a CCI archive (automatically split if too large for Xbox)
+- ```--cso```       Creates a CSO archive (automatically split if too large for Xbox)
+- ```--zar```       Creates a ZAR archive
+- ```--xbe```       Generates an attach XBE file, does not convert the input file
+- ```--ogxbox```    Automatically choose format and settings for use with OG Xbox
+- ```--xbox360```   Automatically choose format and settings for use with Xbox 360
+- ```--xemu```      Automatically choose format and settings for use with Xemu
+- ```--xenia```     Automatically choose format and settings for use with Xenia
 
 Information:
-- ```--version``` Print version information
-- ```--help``` Print usage information
+- ```--version```   Print version information
+- ```--help```      Print usage information
 
 ## Settings arguments
-These arguments can be stacked, though not all output formats will use them. In that case the option is ignored. If any are incompatible with one another, the first argument provided will be used. 
+These arguments can be stacked, though not all output formats will use them, in that case the option is ignored. If any conflicting settings are provided (e.g. full/partial scrub), the last one will be used. 
 - ```--partial-scrub```  Scrubs and trims the output image, random padding data is removed.
 - ```--full-scrub```     Completely reauthor the resulting image, this will produce the smallest file possible.
 - ```--split```          Splits the resulting XISO file if it's too large for OG Xbox.
 - ```--rename```         Patches the title field of resulting XBE files to one found in the database.
-- ```--attach-xbe```         Generates an attach XBE file along with the output file.
+- ```--attach-xbe```     Generates an attach XBE file along with the output file.
 - ```--am-patch```       Patches the "Allowed Media" field in resulting XBE files.
 - ```--offline```        Disables online functionality.
 - ```--debug```          Enable debug logging.

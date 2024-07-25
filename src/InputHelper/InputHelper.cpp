@@ -5,8 +5,7 @@
 #include "Executable/AttachXbeTool.h"
 
 InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings)
-    :   output_directory_(out_directory), 
-        output_settings_(output_settings)
+    : output_directory_(out_directory), output_settings_(output_settings)
 {
     FileType in_file_type = get_filetype(in_path);
 
@@ -60,7 +59,7 @@ void InputHelper::process()
         {
             std::vector<std::filesystem::path> out_paths;
 
-            switch (output_settings_.out_file_type) 
+            switch (output_settings_.file_type) 
             {
                 case FileType::DIR:
                     out_paths = create_dir(input_info);
@@ -69,6 +68,10 @@ void InputHelper::process()
                     out_paths = create_attach_xbe(input_info);
                     break;
                 default:
+                    if (input_info.file_type == FileType::ZAR)
+                    {
+                        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create image from ZAR file");
+                    }
                     out_paths = create_image(input_info);
                     break;
             } 
@@ -77,12 +80,12 @@ void InputHelper::process()
         } 
         catch (const XGDException& e) 
         {
-            failed_inputs_.insert(failed_inputs_.end(), input_info.in_paths.begin(), input_info.in_paths.end());
+            failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
             XGDLog(Error) << e.what() << "\n";
         }
         catch (const std::exception& e) 
         {
-            failed_inputs_.insert(failed_inputs_.end(), input_info.in_paths.begin(), input_info.in_paths.end());
+            failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
             XGDLog(Error) << e.what() << "\n";
         }
     }
@@ -98,13 +101,13 @@ std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& in
     std::unique_ptr<TitleHelper> title_helper;
     std::shared_ptr<ImageReader> image_reader;
 
-    switch (input_info.in_file_type) 
+    switch (input_info.file_type) 
     {
         case FileType::DIR:
-            title_helper = std::make_unique<TitleHelper>(input_info.in_paths.front(), output_settings_.offline_mode);
+            title_helper = std::make_unique<TitleHelper>(input_info.paths.front(), output_settings_.offline_mode);
             break;
         default:
-            image_reader = ImageReader::create_instance(input_info.in_file_type, input_info.in_paths);
+            image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
             title_helper = std::make_unique<TitleHelper>(image_reader, output_settings_.offline_mode);
             break;
     }
@@ -113,10 +116,10 @@ std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& in
 
     std::unique_ptr<ImageWriter> image_writer;
 
-    switch (input_info.in_file_type) 
+    switch (input_info.file_type) 
     {
         case FileType::DIR:
-            image_writer = ImageWriter::create_instance(input_info.in_paths.front(), *title_helper, output_settings_);
+            image_writer = ImageWriter::create_instance(input_info.paths.front(), *title_helper, output_settings_);
             break;
         default:
             image_writer = ImageWriter::create_instance(image_reader, *title_helper, output_settings_);
@@ -136,12 +139,12 @@ std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& in
 
 std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& input_info)
 {
-    if (input_info.in_file_type == FileType::DIR)
+    if (input_info.file_type == FileType::DIR)
     {
         throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create directory from directory");
     }
 
-    std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.in_file_type, input_info.in_paths);
+    std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
 
     TitleHelper title_helper(image_reader, output_settings_.offline_mode);
 
@@ -155,12 +158,12 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
 
 std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInfo& input_info)
 {
-    if (input_info.in_file_type == FileType::DIR)
+    if (input_info.file_type == FileType::DIR)
     {
         throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create attach XBE from directory");
     }
 
-    std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.in_file_type, input_info.in_paths);
+    std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
 
     if (image_reader->platform() != Platform::OGX)
     {
@@ -169,7 +172,7 @@ std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInf
 
     TitleHelper title_helper(image_reader, output_settings_.offline_mode);
 
-    std::filesystem::path out_path = get_output_path(input_info.in_paths.front().parent_path(), title_helper);
+    std::filesystem::path out_path = get_output_path(input_info.paths.front().parent_path(), title_helper);
 
     AttachXbeTool attach_xbe_tool(title_helper); 
     attach_xbe_tool.generate_attach_xbe(out_path);

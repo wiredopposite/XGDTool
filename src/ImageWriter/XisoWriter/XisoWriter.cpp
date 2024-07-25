@@ -173,11 +173,6 @@ void XisoWriter::write_entry(AvlTree::Node* node, split::ofstream* out_file, int
     uint32_t padding_length = static_cast<uint32_t>(node->offset + node->directory_start - out_file->tellp());
     std::vector<char> padding(padding_length, Xiso::PAD_BYTE);
 
-    if (sizeof(header) != sizeof(Xiso::DirectoryEntry::Header)) 
-    {
-        throw XGDException(ErrCode::MISC, HERE(), "Header size mismatch");
-    }
-
     out_file->write(padding.data(), padding_length);
     out_file->write(reinterpret_cast<char*>(&header), sizeof(Xiso::DirectoryEntry::Header));
     out_file->write(node->filename.c_str(), header.name_length);
@@ -258,23 +253,23 @@ void XisoWriter::write_file_from_directory(AvlTree::Node* node, split::ofstream*
 
     while (bytes_remaining > 0) 
     {
-        uint32_t bytes_to_write = std::min(bytes_remaining, XGD::BUFFER_SIZE);
+        uint32_t read_size = std::min(bytes_remaining, XGD::BUFFER_SIZE);
 
-        in_file.read(buffer.data(), bytes_to_write);
+        in_file.read(buffer.data(), read_size);
         if (in_file.fail()) 
         {
             throw XGDException(ErrCode::FILE_READ, HERE(), "Failed to read file data: " + node->path.string());
         }
 
-        out_file->write(buffer.data(), bytes_to_write);
+        out_file->write(buffer.data(), read_size);
         if (out_file->fail()) 
         {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
 
-        bytes_remaining -= bytes_to_write;
+        bytes_remaining -= read_size;
 
-        XGDLog().print_progress(bytes_processed_ += bytes_to_write, total_bytes_);
+        XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
     }
 
     in_file.close();
@@ -301,7 +296,7 @@ void XisoWriter::write_header(split::ofstream& out_file, AvlTree& avl_tree)
     }
 }
 
-void XisoWriter::pad_to_modulus(split::ofstream& out_file, uint32_t modulus, char pad_byte) 
+void XisoWriter::pad_to_modulus(split::ofstream& out_file, const uint32_t modulus, const char pad_byte) 
 {
     if ((out_file.tellp() % modulus) == 0) 
     {

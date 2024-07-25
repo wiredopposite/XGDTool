@@ -20,8 +20,8 @@ public:
 
 private:
     struct InputInfo {
-        FileType in_file_type;
-        std::vector<std::filesystem::path> in_paths;
+        FileType file_type;
+        std::vector<std::filesystem::path> paths;
     };
 
     std::vector<InputInfo> input_infos_;

@@ -12,7 +12,7 @@ enum class AutoFormat { NONE, OGXBOX, XBOX360, XEMU, XENIA };
 
 struct OutputSettings 
 {
-    FileType out_file_type{FileType::UNKNOWN};
+    FileType file_type{FileType::UNKNOWN};
     ScrubType scrub_type{ScrubType::NONE};
     bool split{false};
     bool attach_xbe{false};
