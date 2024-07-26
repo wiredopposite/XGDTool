@@ -60,6 +60,8 @@ set(SRC
 
     ${SRC_DIR}/Utils/EndianUtils.cpp
     ${SRC_DIR}/Utils/StringUtils.cpp
+
+    ${SRC_DIR}/Formats/Xiso.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

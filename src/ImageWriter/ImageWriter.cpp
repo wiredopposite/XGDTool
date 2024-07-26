@@ -11,7 +11,7 @@
 
 std::unique_ptr<ImageWriter> ImageWriter::create_instance(std::shared_ptr<ImageReader> image_reader, TitleHelper& title_helper, const OutputSettings& out_settings) 
 {
-    switch (out_settings.out_file_type) 
+    switch (out_settings.file_type) 
     {
         case FileType::ISO:
             return std::make_unique<XisoWriter>(image_reader, out_settings.scrub_type, out_settings.split);
@@ -30,7 +30,7 @@ std::unique_ptr<ImageWriter> ImageWriter::create_instance(std::shared_ptr<ImageR
 
 std::unique_ptr<ImageWriter> ImageWriter::create_instance(const std::filesystem::path& in_dir_path, TitleHelper& title_helper, const OutputSettings& out_settings) 
 {
-    switch (out_settings.out_file_type) 
+    switch (out_settings.file_type) 
     {
         case FileType::ISO:
             return std::make_unique<XisoWriter>(in_dir_path, out_settings.split);
@@ -86,12 +86,12 @@ size_t ImageWriter::write_directory_to_buffer(const std::vector<AvlIterator::Ent
 {
     size_t entries_processed = 0;
 
-    for (size_t i = start_index; i < avl_entries.size(); ++i)
+    for (uint64_t i = start_index; i < avl_entries.size(); ++i)
     {
         Xiso::DirectoryEntry::Header dir_header = get_directory_entry_header(*avl_entries[i].node);
 
-        size_t entry_len = sizeof(Xiso::DirectoryEntry::Header) + dir_header.name_length;
-        size_t buffer_pos = entry_buffer.size();
+        uint64_t entry_len = sizeof(Xiso::DirectoryEntry::Header) + dir_header.name_length;
+        uint64_t buffer_pos = entry_buffer.size();
 
         entry_buffer.resize(buffer_pos + entry_len, Xiso::PAD_BYTE);
 
@@ -107,7 +107,7 @@ size_t ImageWriter::write_directory_to_buffer(const std::vector<AvlIterator::Ent
             break;
         }
 
-        size_t padding_len = avl_entries[i + 1].node->offset - entry_buffer.size();
+        uint64_t padding_len = avl_entries[i + 1].node->offset - entry_buffer.size();
 
         if (padding_len > 0) 
         {
@@ -123,7 +123,7 @@ size_t ImageWriter::write_directory_to_buffer(const std::vector<AvlIterator::Ent
     return entries_processed;
 }
 
-uint32_t ImageWriter::num_sectors(const size_t size)
+uint32_t ImageWriter::num_sectors(const uint64_t num_bytes)
 {
-    return static_cast<uint32_t>(size / Xiso::SECTOR_SIZE) + ((size % Xiso::SECTOR_SIZE) ? 1 : 0);
+    return static_cast<uint32_t>(num_bytes / Xiso::SECTOR_SIZE) + ((num_bytes % Xiso::SECTOR_SIZE) ? 1 : 0);
 }

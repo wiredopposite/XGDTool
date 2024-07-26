@@ -24,8 +24,8 @@ namespace CCI {
     struct Header {
         char magic[4]               {'C', 'C', 'I', 'M'};
         uint32_t header_size        {CCI::HEADER_SIZE};
-        uint64_t uncompressed_size;
-        uint64_t index_offset;
+        uint64_t uncompressed_size{0};
+        uint64_t index_offset{0};
         uint32_t block_size         {CCI::BLOCK_SIZE};
         uint8_t version             {CCI::VERSION};
         uint8_t index_alignment     {CCI::INDEX_ALIGNMENT};

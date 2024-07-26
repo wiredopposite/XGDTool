@@ -28,8 +28,7 @@ public:
     std::string name() override { return in_cso_paths_.front().filename().string(); };
 
 private:
-    struct IndexInfo 
-    {
+    struct IndexInfo {
         uint32_t value;
         bool compressed;
     };

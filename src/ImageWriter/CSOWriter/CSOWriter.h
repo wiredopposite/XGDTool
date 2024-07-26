@@ -64,7 +64,7 @@ private:
     void finalize_out_files(std::ofstream& out_file, std::vector<uint32_t>& block_index);
 
     void write_padding_sectors(std::ofstream& out_file, std::vector<uint32_t>& block_index, const uint32_t num_sectors, const char pad_byte);
-    void pad_to_modulus(std::ofstream& out_file, uint32_t modulus, char pad_byte);
+    void pad_to_modulus(std::ofstream& out_file, const uint64_t modulus, const char pad_byte);
 
     std::vector<std::filesystem::path> out_paths();
 };

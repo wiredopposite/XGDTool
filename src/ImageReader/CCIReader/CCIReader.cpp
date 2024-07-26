@@ -10,7 +10,6 @@
 CCIReader::CCIReader(const std::vector<std::filesystem::path>& in_cci_paths) 
     : in_cci_paths_(in_cci_paths) 
 {
-
     for (const auto& path : in_cci_paths_) 
     {
         in_files_.push_back(std::make_unique<std::ifstream>(path, std::ios::binary));
@@ -22,19 +21,25 @@ CCIReader::CCIReader(const std::vector<std::filesystem::path>& in_cci_paths)
 
     verify_and_populate_index_infos();
 
-    total_sectors_ = static_cast<uint32_t>(index_infos_.size());
+    for (const auto& index_info : index_infos_) 
+    {
+        total_sectors_ += static_cast<uint32_t>(index_info.size()) - 1;
+    }
 }
 
 CCIReader::~CCIReader() 
 {
-    for (auto& file : in_files_) 
+    for (auto& in_file : in_files_) 
     {
-        file->close();
+        in_file->close();
     }
+    in_files_.clear();
 }
 
 void CCIReader::verify_and_populate_index_infos() 
 {
+    index_infos_.resize(in_files_.size());   
+
     for (int i = 0; i < in_files_.size(); ++i) 
     {
         in_files_[i]->seekg(0, std::ios::beg);
@@ -55,15 +60,12 @@ void CCIReader::verify_and_populate_index_infos()
         {
             throw XGDException(ErrCode::ISO_INVALID, HERE());
         }
-
-        if (i == 0) 
-        {
-            part_1_sectors_ = static_cast<uint32_t>(header.uncompressed_size / CCI::BLOCK_SIZE);
-        }
+        
+        index_infos_[i].reserve(static_cast<uint32_t>(header.uncompressed_size / CCI::BLOCK_SIZE) + 1);
 
         in_files_[i]->seekg(header.index_offset, std::ios::beg);
 
-        for (uint32_t j = 0; j <= header.uncompressed_size / CCI::BLOCK_SIZE; ++j) 
+        for (uint32_t j = 0; j <= static_cast<uint32_t>(header.uncompressed_size / CCI::BLOCK_SIZE); ++j) 
         {
             uint32_t index;
             
@@ -73,21 +75,28 @@ void CCIReader::verify_and_populate_index_infos()
                 throw XGDException(ErrCode::FILE_READ, HERE());
             }
 
-            index_infos_.push_back({ (index & 0x7FFFFFFF) << CCI::INDEX_ALIGNMENT, ((index & 0x80000000) > 0) });
+            index_infos_[i].push_back({ (index & 0x7FFFFFFF) << CCI::INDEX_ALIGNMENT, ((index & 0x80000000) > 0) });
         }
     }
 }
 
 void CCIReader::read_sector(const uint32_t sector, char* out_buffer) 
 {
-    int idx = (sector < part_1_sectors_) ? 0 : 1;
-    size_t compressed_size = index_infos_[sector + 1].value - index_infos_[sector].value;
+    int idx = (sector > index_infos_[0].size() - 2) ? 1 : 0; //Final index in each file doesn't represent a sector
 
-    if (index_infos_[sector].compressed || compressed_size < Xiso::SECTOR_SIZE) 
+    if (idx > 0 && in_files_.size() < 2)
+    {
+        throw XGDException(ErrCode::MISC, HERE(), "Sector requested is out of bounds");
+    }
+
+    uint32_t sector_in_file = sector - (idx * (static_cast<uint32_t>(index_infos_[0].size()) - 1));
+    size_t compressed_size = index_infos_[idx][sector_in_file + 1].value - index_infos_[idx][sector_in_file].value;
+
+    if (index_infos_[idx][sector_in_file].compressed || compressed_size < Xiso::SECTOR_SIZE) 
     {
         uint8_t padding_len;
 
-        in_files_[idx]->seekg(index_infos_[sector].value, std::ios::beg);
+        in_files_[idx]->seekg(index_infos_[idx][sector_in_file].value, std::ios::beg);
         in_files_[idx]->read(reinterpret_cast<char*>(&padding_len), sizeof(uint8_t));
 
         compressed_size = compressed_size - (1 + padding_len);
@@ -103,8 +112,13 @@ void CCIReader::read_sector(const uint32_t sector, char* out_buffer)
     } 
     else 
     {
-        in_files_[idx]->seekg(index_infos_[sector].value, std::ios::beg);
+        in_files_[idx]->seekg(index_infos_[idx][sector_in_file].value, std::ios::beg);
         in_files_[idx]->read(out_buffer, Xiso::SECTOR_SIZE);
+    }
+
+    if (in_files_[idx]->fail()) 
+    {
+        throw XGDException(ErrCode::FILE_READ, HERE());
     }
 }
 

@@ -25,7 +25,7 @@ protected:
     Xiso::DirectoryEntry::Header get_directory_entry_header(const AvlTree::Node& node);
     size_t write_directory_to_buffer(const std::vector<AvlIterator::Entry>& avl_entries, const size_t start_index, std::vector<char>& entry_buffer);
     void create_directory(const std::filesystem::path& dir_path);
-    uint32_t num_sectors(const size_t size);
+    uint32_t num_sectors(const uint64_t num_bytes);
 };
 
 #endif // _IMAGE_WRITER_H_

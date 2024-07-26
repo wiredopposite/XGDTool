@@ -26,7 +26,7 @@ void AvlTree::generate_from_filesystem(const std::filesystem::path& in_directory
         {
             if (std::filesystem::file_size(entry_path) > UINT32_MAX) 
             {
-                XGDLog(Error) << "Warning: File size exceeds maximum allowed in XISO format:.\nSkipping: " << entry_path.string() << XGDLog::Endl;
+                XGDLog(Error) << "Warning: File size exceeds maximum allowed in XISO format:.\nSkipping: " << entry_path.string() << "\n";
                 delete current_node;
                 continue;
             }

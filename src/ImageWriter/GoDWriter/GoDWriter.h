@@ -69,9 +69,9 @@ private:
     Remap remap_sector(const uint64_t iso_sector);
     Remap remap_offset(const uint64_t iso_offset);
     uint64_t to_iso_offset(const uint64_t god_offset, const uint32_t god_file_index);
-    uint32_t num_blocks(const size_t size);
+    uint32_t num_blocks(const uint64_t num_bytes);
     uint32_t num_parts(const uint32_t num_data_blocks);
-    SHA1Hash compute_sha1(const char* data, size_t size);
+    SHA1Hash compute_sha1(const char* data, const uint64_t size);
 };
 
 #endif // _GoD_WRITER_H_

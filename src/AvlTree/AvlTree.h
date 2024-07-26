@@ -18,13 +18,14 @@ public:
     enum class Skew { NONE, LEFT, RIGHT };
 
     struct Node {
-        uint64_t offset{0};
-        uint64_t directory_start{0};
-        std::string filename;
-        uint64_t file_size{0};
+        uint64_t directory_start{0}; // Offset in bytes of first directory entry in directory
+        uint64_t offset{0}; // Offset in bytes of directory entry, relative to directory start
 
-        uint64_t start_sector{0};
-        uint64_t old_start_sector{0};
+        std::string filename;
+        uint64_t file_size{0}; // Size of file in bytes, checked to not exceed UINT32_MAX
+
+        uint64_t start_sector{0}; // Start sector of file in ISO, checked to not exceed UINT32_MAX
+        uint64_t old_start_sector{0}; // Start sector of file in source ISO, checked to not exceed UINT32_MAX
 
         Skew skew{Skew::NONE};
 
@@ -32,9 +33,11 @@ public:
         Node* left_child{nullptr};
         Node* right_child{nullptr};
 
-        std::filesystem::path path; // Abs path if created from filesystem, otherwise relative to root
+        std::filesystem::path path; // Abs path if created from filesystem, otherwise relative to root directory of ISO
 
-        Node(const std::string& name) : filename(name) {}
+        Node(const std::string& name) 
+            : filename(name) {}
+
         ~Node() {
             if (subdirectory && subdirectory != EMPTY_SUBDIRECTORY) {
                 delete subdirectory;

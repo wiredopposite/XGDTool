@@ -64,14 +64,12 @@ std::vector<std::filesystem::path> GoDWriter::convert(const std::filesystem::pat
 
 void GoDWriter::write_iso_header(std::vector<std::unique_ptr<std::ofstream>>& out_files, AvlTree& avl_tree)
 {
-    uint32_t total_sectors = static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE);    
-
     Xiso::Header iso_header(static_cast<uint32_t>(avl_tree.root()->start_sector),
                             static_cast<uint32_t>(avl_tree.root()->file_size),
-                            total_sectors,
+                            static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE),
                             image_reader_ ? image_reader_->file_time() : Xiso::FileTime());
 
-    for (uint32_t i = 0; i < static_cast<uint32_t>(sizeof(Xiso::Header) / Xiso::SECTOR_SIZE); i++) 
+    for (size_t i = 0; i < sizeof(Xiso::Header) / Xiso::SECTOR_SIZE; i++) 
     {
         Remap remapped = remap_sector(i);
         out_files[remapped.file_index]->seekp(remapped.offset, std::ios::beg);
@@ -173,7 +171,7 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files_from_avl(AvlTree&
             current_out_sector += num_sectors(avl_entries[i].node->file_size);
         }
 
-        if (i != avl_entries.size() - 1 && avl_entries[i + 1].offset > static_cast<uint64_t>(current_out_sector) * Xiso::SECTOR_SIZE) 
+        if (i != avl_entries.size() - 1 && avl_entries[i + 1].offset > current_out_sector * Xiso::SECTOR_SIZE) 
         {
             uint32_t pad_sectors = static_cast<uint32_t>(avl_entries[i + 1].offset / Xiso::SECTOR_SIZE) - current_out_sector;
             write_padding_sectors(out_files, current_out_sector, pad_sectors, Xiso::PAD_BYTE);
@@ -198,16 +196,20 @@ void GoDWriter::write_file_from_reader(std::vector<std::unique_ptr<std::ofstream
 {
     uint64_t current_write_sector = node.start_sector;
     uint64_t read_position = image_reader_->image_offset() + (node.old_start_sector * Xiso::SECTOR_SIZE);
-    size_t bytes_remaining = node.file_size;
+    uint64_t bytes_remaining = node.file_size;
 
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0)
     {
-        std::fill(read_buffer.begin(), read_buffer.end(), Xiso::PAD_BYTE);
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));   
+        uint64_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);   
 
         image_reader_->read_bytes(read_position, read_size, read_buffer.data());
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
+        }
 
         Remap remapped = remap_sector(current_write_sector);
         out_files[remapped.file_index]->seekp(remapped.offset, std::ios::beg);
@@ -234,18 +236,22 @@ void GoDWriter::write_file_from_directory(std::vector<std::unique_ptr<std::ofstr
     }
 
     uint64_t current_write_sector = node.start_sector;
-    size_t bytes_remaining = node.file_size;
+    uint64_t bytes_remaining = node.file_size;
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0)
     {
-        std::fill(read_buffer.begin(), read_buffer.end(), Xiso::PAD_BYTE);
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));   
+        uint64_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);   
 
         in_file.read(read_buffer.data(), read_size);
         if (in_file.fail()) 
         {
             throw XGDException(ErrCode::FILE_READ, HERE());
+        }
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
         }
 
         Remap remapped = remap_sector(current_write_sector);
@@ -319,7 +325,7 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesy
         } 
         else 
         {
-            std::fill(buffer.begin(), buffer.end(), 0);
+            std::memset(buffer.data(), 0x00, Xiso::SECTOR_SIZE);
         }
 
         Remap remapped = remap_sector(current_sector - sector_offset);
@@ -600,16 +606,16 @@ uint64_t GoDWriter::to_iso_offset(const uint64_t god_offset, const uint32_t god_
     return (data_block_num * GoD::BLOCK_SIZE) + (god_offset % GoD::BLOCK_SIZE);
 }
 
-GoDWriter::SHA1Hash GoDWriter::compute_sha1(const char* data, size_t size) 
+GoDWriter::SHA1Hash GoDWriter::compute_sha1(const char* data, const uint64_t size) 
 {
     SHA1Hash result;
     SHA1(reinterpret_cast<const unsigned char*>(data), size, result.hash);
     return result;
 }
 
-uint32_t GoDWriter::num_blocks(const size_t size) 
+uint32_t GoDWriter::num_blocks(const uint64_t num_bytes) 
 {
-    return static_cast<uint32_t>(size / GoD::BLOCK_SIZE) + ((size % GoD::BLOCK_SIZE) ? 1 : 0);
+    return static_cast<uint32_t>(num_bytes / GoD::BLOCK_SIZE) + ((num_bytes % GoD::BLOCK_SIZE) ? 1 : 0);
 }
 
 uint32_t GoDWriter::num_parts(const uint32_t num_data_blocks) 

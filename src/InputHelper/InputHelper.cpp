@@ -57,6 +57,8 @@ void InputHelper::process()
     {
         try 
         {
+            XGDLog() << "Processing: " << input_info.paths.front().string() + ((input_info.paths.size() > 1) ? (" and " + input_info.paths.back().string()) : "") << "\n";
+            
             std::vector<std::filesystem::path> out_paths;
 
             switch (output_settings_.file_type) 

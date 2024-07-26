@@ -40,7 +40,7 @@ std::vector<std::filesystem::path> CSOWriter::convert(const std::filesystem::pat
     out_filepath_1_.replace_extension(".1.cso");
     out_filepath_2_.replace_extension(".2.cso");
 
-    if (!image_reader_ && scrub_type_ == ScrubType::FULL) 
+    if (image_reader_ && scrub_type_ == ScrubType::FULL) 
     {
         AvlTree avl_tree(image_reader_->name(), image_reader_->directory_entries());
         convert_to_cso_from_avl(avl_tree);
@@ -147,10 +147,10 @@ void CSOWriter::write_header(std::ofstream& out_file, std::vector<uint32_t>& blo
 {
     Xiso::Header iso_header(static_cast<uint32_t>(avl_tree.root()->start_sector), 
                             static_cast<uint32_t>(avl_tree.root()->file_size), 
-                            static_cast<uint32_t>(block_index.size()), 
+                            static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE), 
                             image_reader_ ? image_reader_->file_time() : Xiso::FileTime()); 
 
-    for (uint32_t i = 0; i < static_cast<uint32_t>(sizeof(Xiso::Header) / Xiso::SECTOR_SIZE); ++i) 
+    for (size_t i = 0; i < sizeof(Xiso::Header) / Xiso::SECTOR_SIZE; ++i) 
     {
         compress_and_write_sector_managed(out_file, block_index, reinterpret_cast<const char*>(&iso_header) + (i * Xiso::SECTOR_SIZE));
     }
@@ -164,13 +164,11 @@ void CSOWriter::write_padding_sectors(std::ofstream& out_file, std::vector<uint3
     {
         compress_and_write_sector_managed(out_file, block_index, pad_sector.data());
     }
-
 }
 
 void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree) 
 {
-    uint64_t out_iso_size = avl_tree.out_iso_size();
-    uint32_t out_iso_sectors = static_cast<uint32_t>(out_iso_size / Xiso::SECTOR_SIZE);
+    uint32_t out_iso_sectors = static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE);
 
     prog_total_ = avl_tree.total_bytes();
     prog_processed_ = 0;
@@ -181,7 +179,9 @@ void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree)
         throw XGDException(ErrCode::FILE_OPEN, HERE(), out_filepath_1_.string());
     }
 
-    CSO::Header cso_header(out_iso_size);
+    XGDLog() << "Writing CSO file" << XGDLog::Endl;
+
+    CSO::Header cso_header(avl_tree.out_iso_size());
 
     out_file.write(reinterpret_cast<const char*>(&cso_header), sizeof(CSO::Header));
 
@@ -192,6 +192,8 @@ void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree)
     }
 
     std::vector<uint32_t> block_index;
+    block_index.reserve(out_iso_sectors + 1);
+    
     write_header(out_file, block_index, avl_tree);
 
     AvlIterator avl_iterator(avl_tree);
@@ -202,15 +204,15 @@ void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree)
 
     for (size_t i = 0; i < avl_entries.size(); i++) 
     {
-        if (avl_entries[i].offset > ((block_index.size() - 1) * Xiso::SECTOR_SIZE)) 
+        if (avl_entries[i].offset > block_index.size() * Xiso::SECTOR_SIZE) 
         {
-            uint32_t pad_sectors = static_cast<uint32_t>((avl_entries[i].offset - (block_index.size() * Xiso::SECTOR_SIZE)) / Xiso::SECTOR_SIZE);
+            uint32_t pad_sectors = static_cast<uint32_t>((avl_entries[i].offset / Xiso::SECTOR_SIZE) - block_index.size());
             write_padding_sectors(out_file, block_index, pad_sectors, Xiso::PAD_BYTE);
         } 
         
-        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) < (block_index.size() - 1) || (avl_entries[i].offset % Xiso::SECTOR_SIZE)) 
+        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) != block_index.size() || (avl_entries[i].offset % Xiso::SECTOR_SIZE)) 
         {
-            throw XGDException(ErrCode::MISC, HERE(), "CCI file has become misaligned");
+            throw XGDException(ErrCode::MISC, HERE(), "CSO file has become misaligned");
         }
 
         if (avl_entries[i].directory_entry) 
@@ -244,23 +246,28 @@ void CSOWriter::convert_to_cso_from_avl(AvlTree& avl_tree)
     }
 
     finalize_out_files(out_file, block_index);
+
     out_file.close();
 }
 
 void CSOWriter::write_file_from_reader(std::ofstream& out_file, std::vector<uint32_t>& block_index, AvlTree::Node& node) 
 {
     ImageReader& image_reader = *image_reader_;
-    size_t bytes_remaining = node.file_size;
-    size_t read_position = image_reader.image_offset() + (node.old_start_sector * Xiso::SECTOR_SIZE);
+    uint64_t bytes_remaining = node.file_size;
+    uint64_t read_position = image_reader.image_offset() + (node.old_start_sector * Xiso::SECTOR_SIZE);
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0) 
     {
-        std::fill(read_buffer.begin(), read_buffer.end(), Xiso::PAD_BYTE);
-
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));
+        uint64_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
 
         image_reader.read_bytes(read_position, read_size, read_buffer.data());
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
+        }
+
         compress_and_write_sector_managed(out_file, block_index, read_buffer.data());
 
         bytes_remaining -= read_size;
@@ -278,19 +285,22 @@ void CSOWriter::write_file_from_directory(std::ofstream& out_file, std::vector<u
         throw std::runtime_error("Failed to open input file: " + node.path.string());
     }
 
-    size_t bytes_remaining = node.file_size;
+    uint64_t bytes_remaining = node.file_size;
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0) 
     {
-        std::fill(read_buffer.begin(), read_buffer.end(), Xiso::PAD_BYTE);
-
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));
+        uint64_t read_size = std::min(bytes_remaining, Xiso::SECTOR_SIZE);
 
         in_file.read(read_buffer.data(), read_size);
         if (in_file.fail()) 
         {
             throw std::runtime_error("Failed to read from input file: " + node.path.string());
+        }
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
         }
 
         compress_and_write_sector_managed(out_file, block_index, read_buffer.data());
@@ -413,14 +423,14 @@ std::vector<std::filesystem::path> CSOWriter::out_paths()
     return { out_filepath_1_ };
 }
 
-void CSOWriter::pad_to_modulus(std::ofstream& out_file, uint32_t modulus, char pad_byte) 
+void CSOWriter::pad_to_modulus(std::ofstream& out_file, const uint64_t modulus, const char pad_byte) 
 {
     if ((out_file.tellp() % modulus) == 0) 
     {
         return;
     }
 
-    size_t padding_len = modulus - (out_file.tellp() % modulus);
+    uint64_t padding_len = modulus - (out_file.tellp() % modulus);
     std::vector<char> buffer(padding_len, pad_byte);
 
     out_file.write(buffer.data(), padding_len); 

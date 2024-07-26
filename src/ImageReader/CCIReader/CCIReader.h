@@ -30,9 +30,7 @@ private:
     std::vector<std::unique_ptr<std::ifstream>> in_files_;
 
     uint32_t total_sectors_{0};
-
-    uint32_t part_1_sectors_{0};
-    std::vector<CCI::IndexInfo> index_infos_;
+    std::vector<std::vector<CCI::IndexInfo>> index_infos_;
 
     void verify_and_populate_index_infos();
 };

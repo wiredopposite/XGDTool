@@ -40,7 +40,7 @@ private:
     void write_file_from_directory(AvlTree::Node* node, split::ofstream* out_file, int depth);
     void write_header(split::ofstream& out_file, AvlTree& avl_tree);
 
-    void pad_to_modulus(split::ofstream& out_file, const uint32_t modulus, const char pad_byte);
+    void pad_to_modulus(split::ofstream& out_file, const uint64_t modulus, const char pad_byte);
 };
 
 #endif // _XISO_WRITER_H_

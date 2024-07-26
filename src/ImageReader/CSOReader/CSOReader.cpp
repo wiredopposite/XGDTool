@@ -16,7 +16,7 @@ CSOReader::CSOReader(const std::vector<std::filesystem::path>& in_cso_paths)
 
     verify_and_populate_index_infos();
 
-    XGDLog(Debug) << "CSOReader: " << in_cso_paths_.front().filename().string() << " has " << total_sectors_ << " sectors" << XGDLog::Endl;    
+    total_sectors_ = static_cast<uint32_t>(index_infos_.size()) - 1;
 
     LZ4F_errorCode_t lz4f_error = LZ4F_createDecompressionContext(&lz4f_dctx_, LZ4F_VERSION);
     if (LZ4F_isError(lz4f_error)) 
@@ -59,7 +59,7 @@ void CSOReader::verify_and_populate_index_infos()
         throw XGDException(ErrCode::ISO_INVALID, HERE());
     }
 
-    total_sectors_ = static_cast<uint32_t>(header.uncompressed_size / Xiso::SECTOR_SIZE);
+    index_infos_.reserve(static_cast<uint32_t>(header.uncompressed_size / Xiso::SECTOR_SIZE) + 1);
 
     for (uint32_t j = 0; j < (header.uncompressed_size / CSO::BLOCK_SIZE) + 1; ++j) 
     {

@@ -196,25 +196,22 @@ void XisoWriter::write_file_from_reader(AvlTree::Node* node, split::ofstream* ou
         throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to seek to file sector: " + node->filename);
     }
 
-    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    uint64_t bytes_remaining = node->file_size;
     uint64_t read_position = image_reader_->image_offset() + (node->old_start_sector * static_cast<uint64_t>(Xiso::SECTOR_SIZE));
     std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
 
-    auto start_pos = out_file->tellp();
-
     while (bytes_remaining > 0) 
     {
-        uint32_t bytes_to_read = std::min(bytes_remaining, XGD::BUFFER_SIZE);
+        uint64_t bytes_to_read = std::min(bytes_remaining, XGD::BUFFER_SIZE);
 
         image_reader_->read_bytes(read_position, bytes_to_read, buffer.data());
 
         out_file->write(buffer.data(), bytes_to_read);
-        if (out_file->fail() || out_file->tellp() != start_pos + bytes_to_read) 
+        if (out_file->fail()) 
         {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
 
-        start_pos += bytes_to_read;
         bytes_remaining -= bytes_to_read;
         read_position += bytes_to_read;
 
@@ -248,12 +245,12 @@ void XisoWriter::write_file_from_directory(AvlTree::Node* node, split::ofstream*
         throw XGDException(ErrCode::FILE_OPEN, HERE(), node->path.string());
     }
 
-    uint32_t bytes_remaining = static_cast<uint32_t>(node->file_size);
+    uint64_t bytes_remaining = node->file_size;
     std::vector<char> buffer(XGD::BUFFER_SIZE, 0);
 
     while (bytes_remaining > 0) 
     {
-        uint32_t read_size = std::min(bytes_remaining, XGD::BUFFER_SIZE);
+        uint64_t read_size = std::min(bytes_remaining, XGD::BUFFER_SIZE);
 
         in_file.read(buffer.data(), read_size);
         if (in_file.fail()) 
@@ -296,7 +293,7 @@ void XisoWriter::write_header(split::ofstream& out_file, AvlTree& avl_tree)
     }
 }
 
-void XisoWriter::pad_to_modulus(split::ofstream& out_file, const uint32_t modulus, const char pad_byte) 
+void XisoWriter::pad_to_modulus(split::ofstream& out_file, const uint64_t modulus, const char pad_byte) 
 {
     if ((out_file.tellp() % modulus) == 0) 
     {

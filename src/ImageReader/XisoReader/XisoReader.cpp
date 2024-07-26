@@ -59,8 +59,6 @@ void XisoReader::read_bytes(const uint64_t offset, const size_t size, char* out_
 
 uint64_t XisoReader::get_image_offset() 
 {
-    XGDLog(Debug) << "Getting image offset..." << XGDLog::Endl;
-
     char buffer[Xiso::MAGIC_DATA_LEN];
 
     const std::vector<int> seek_offsets = 

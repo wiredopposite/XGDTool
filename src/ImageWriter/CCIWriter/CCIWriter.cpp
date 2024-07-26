@@ -49,7 +49,7 @@ void CCIWriter::write_iso_header(std::ofstream& out_file, std::vector<CCI::Index
                                 static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE),
                                 image_reader_ ? image_reader_->file_time() : Xiso::FileTime());
 
-    for (uint32_t i = 0; i < static_cast<uint32_t>(sizeof(Xiso::Header) / Xiso::SECTOR_SIZE); i++) 
+    for (size_t i = 0; i < sizeof(Xiso::Header) / Xiso::SECTOR_SIZE; i++) 
     {
         compress_and_write_sector_managed(out_file, index_infos, reinterpret_cast<char*>(&xiso_header) + (i * Xiso::SECTOR_SIZE));
     }
@@ -67,8 +67,6 @@ void CCIWriter::write_padding_sectors(std::ofstream& out_file, std::vector<CCI::
 
 void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree) 
 {
-    uint64_t out_iso_size = avl_tree.out_iso_size();
-
     prog_total_ = avl_tree.total_bytes();
     prog_processed_ = 0;
 
@@ -84,21 +82,28 @@ void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree)
     XGDLog() << "Writing CCI file..." << XGDLog::Endl;
 
     std::vector<CCI::IndexInfo> index_infos;
+    index_infos.reserve((avl_tree.out_iso_size() / Xiso::SECTOR_SIZE) + 1);
 
     write_iso_header(out_file, index_infos, avl_tree);
 
     uint32_t pad_sectors = static_cast<uint32_t>((avl_entries.front().offset - sizeof(Xiso::Header)) / Xiso::SECTOR_SIZE);
     write_padding_sectors(out_file, index_infos, pad_sectors, 0x00);
 
+    uint32_t sectors_written = static_cast<uint32_t>(avl_entries.front().offset / Xiso::SECTOR_SIZE);
+
     for (size_t i = 0; i < avl_entries.size(); i++) 
     {
-        if (avl_entries[i].offset > ((index_infos.size() - 1) * Xiso::SECTOR_SIZE)) 
+        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) > sectors_written)
         {
-            uint32_t pad_sectors = static_cast<uint32_t>((avl_entries[i].offset / Xiso::SECTOR_SIZE) - index_infos.size());
+            uint32_t pad_sectors = static_cast<uint32_t>(avl_entries[i].offset / Xiso::SECTOR_SIZE) - sectors_written;
+
+            XGDLog(Debug) << "Padding " << pad_sectors << " sectors\n";
+
             write_padding_sectors(out_file, index_infos, pad_sectors, Xiso::PAD_BYTE);
+            sectors_written += pad_sectors;
         } 
 
-        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) < (index_infos.size() - 1) || (avl_entries[i].offset % Xiso::SECTOR_SIZE)) 
+        if ((avl_entries[i].offset / Xiso::SECTOR_SIZE) != sectors_written) 
         {
             throw XGDException(ErrCode::MISC, HERE(), "CCI file has become misaligned");
         }
@@ -109,9 +114,10 @@ void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree)
             size_t entries_processed = write_directory_to_buffer(avl_entries, i, dir_buffer);
             i += entries_processed - 1;
 
-            for (size_t j = 0; j < dir_buffer.size() / Xiso::SECTOR_SIZE; j++) 
+            for (size_t j = 0; j < dir_buffer.size(); j += Xiso::SECTOR_SIZE) 
             {
-                compress_and_write_sector_managed(out_file, index_infos, dir_buffer.data() + (j * Xiso::SECTOR_SIZE));
+                compress_and_write_sector_managed(out_file, index_infos, dir_buffer.data() + j);
+                sectors_written++;
             }
         } 
         else 
@@ -124,11 +130,16 @@ void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree)
             {
                 write_file_from_dir(out_file, index_infos, *avl_entries[i].node);
             }
+
+            sectors_written += num_sectors(avl_entries[i].node->file_size);
         }
     }
 
-    pad_sectors = static_cast<uint32_t>((out_iso_size / Xiso::SECTOR_SIZE) - index_infos.size());
-    write_padding_sectors(out_file, index_infos, pad_sectors, 0x00);
+    pad_sectors = static_cast<uint32_t>(avl_tree.out_iso_size() / Xiso::SECTOR_SIZE) - sectors_written;
+    if (pad_sectors > 0) 
+    {
+        write_padding_sectors(out_file, index_infos, pad_sectors, Xiso::PAD_BYTE);
+    }
 
     finalize_out_file(out_file, index_infos);
     out_file.close();
@@ -137,15 +148,21 @@ void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree)
 void CCIWriter::write_file_from_reader(std::ofstream& out_file, std::vector<CCI::IndexInfo>& index_infos, AvlTree::Node& node) 
 {
     ImageReader& image_reader = *image_reader_;
-    size_t bytes_remaining = node.file_size;
-    size_t read_position = image_reader.image_offset() + (node.old_start_sector * Xiso::SECTOR_SIZE);
+    uint64_t bytes_remaining = node.file_size;
+    uint64_t read_position = image_reader.image_offset() + (node.old_start_sector * Xiso::SECTOR_SIZE);
+    std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0) 
     {
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));
-        std::vector<char> read_buffer(Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
+        uint64_t read_size = std::min(bytes_remaining, static_cast<uint64_t>(Xiso::SECTOR_SIZE));
 
         image_reader.read_bytes(read_position, read_size, read_buffer.data());
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
+        }
+
         compress_and_write_sector_managed(out_file, index_infos, read_buffer.data());
 
         bytes_remaining -= read_size;
@@ -163,17 +180,22 @@ void CCIWriter::write_file_from_dir(std::ofstream& out_file, std::vector<CCI::In
         throw std::runtime_error("Failed to open input file: " + node.path.string());
     }
 
-    size_t bytes_remaining = node.file_size;
+    uint64_t bytes_remaining = node.file_size;
+    std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
 
     while (bytes_remaining > 0) 
     {
-        size_t read_size = std::min(bytes_remaining, static_cast<size_t>(Xiso::SECTOR_SIZE));
-        std::vector<char> read_buffer(Xiso::SECTOR_SIZE, Xiso::PAD_BYTE);
+        uint64_t read_size = std::min(bytes_remaining, static_cast<uint64_t>(Xiso::SECTOR_SIZE));
 
         in_file.read(read_buffer.data(), read_size);
         if (in_file.fail()) 
         {
             throw std::runtime_error("Failed to read from input file: " + node.path.string());
+        }
+
+        if (read_size < Xiso::SECTOR_SIZE) 
+        {
+            std::memset(read_buffer.data() + read_size, Xiso::PAD_BYTE, Xiso::SECTOR_SIZE - read_size);
         }
 
         compress_and_write_sector_managed(out_file, index_infos, read_buffer.data());
@@ -193,15 +215,14 @@ void CCIWriter::convert_to_cci(const bool scrub)
     uint32_t sector_offset = static_cast<uint32_t>(image_reader.image_offset() / Xiso::SECTOR_SIZE);
     const std::unordered_set<uint32_t>* data_sectors;
 
-    prog_total_ = end_sector - sector_offset;
-    prog_processed_ = 0;
-
     if (scrub) 
     {
         data_sectors = &image_reader.data_sectors();
         end_sector = std::min(end_sector, image_reader.max_data_sector() + 1);
-        prog_total_ = end_sector - sector_offset - 1;
     }
+
+    prog_total_ = end_sector - sector_offset;
+    prog_processed_ = 0;
 
     std::ofstream out_file(out_filepath_1_, std::ios::binary);
     if (!out_file.is_open()) 
@@ -212,7 +233,9 @@ void CCIWriter::convert_to_cci(const bool scrub)
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
     const int multiple = (1 << CCI::INDEX_ALIGNMENT);
     uint32_t current_sector = sector_offset;
+
     std::vector<CCI::IndexInfo> index_infos;
+    index_infos.reserve((end_sector - sector_offset) + 1);
 
     while (current_sector < end_sector) 
     {
@@ -236,7 +259,7 @@ void CCIWriter::convert_to_cci(const bool scrub)
             } 
             else 
             {
-                std::fill(read_buffer.begin(), read_buffer.end(), 0);
+                std::memset(read_buffer.data(), 0x00, Xiso::SECTOR_SIZE);
             }
 
             compress_and_write_sector(out_file, index_infos, read_buffer.data());
@@ -268,7 +291,7 @@ void CCIWriter::convert_to_cci(const bool scrub)
 
 void CCIWriter::compress_and_write_sector(std::ofstream& out_file, std::vector<CCI::IndexInfo>& index_infos, const char* in_buffer) 
 {
-    const int multiple = (1 << CCI::INDEX_ALIGNMENT);
+    constexpr int multiple = 1 << CCI::INDEX_ALIGNMENT;
     std::vector<char> compress_buffer(Xiso::SECTOR_SIZE);   
 
     int compressed_size = LZ4_compress_HC(in_buffer, compress_buffer.data(), Xiso::SECTOR_SIZE, Xiso::SECTOR_SIZE, 12);
@@ -301,14 +324,6 @@ void CCIWriter::compress_and_write_sector(std::ofstream& out_file, std::vector<C
 
 void CCIWriter::compress_and_write_sector_managed(std::ofstream& out_file, std::vector<CCI::IndexInfo>& index_infos, const char* in_buffer) 
 {
-    if (index_infos.size() == 0 && out_file.tellp() == 0) 
-    {
-        std::vector<char> empty_buffer(sizeof(CCI::Header), 0);
-        out_file.write(empty_buffer.data(), sizeof(CCI::Header));
-    }
-
-    compress_and_write_sector(out_file, index_infos, in_buffer);
-
     if (static_cast<uint64_t>(out_file.tellp()) > CCI::SPLIT_OFFSET) 
     {
         finalize_out_file(out_file, index_infos);
@@ -320,6 +335,14 @@ void CCIWriter::compress_and_write_sector_managed(std::ofstream& out_file, std::
             throw XGDException(ErrCode::FILE_OPEN, HERE(), "Failed to open output file: " + out_filepath_2_.string());
         }
     }
+
+    if (index_infos.size() == 0 && out_file.tellp() == 0) 
+    {
+        std::vector<char> empty_buffer(sizeof(CCI::Header), 0);
+        out_file.write(empty_buffer.data(), sizeof(CCI::Header));
+    }
+
+    compress_and_write_sector(out_file, index_infos, in_buffer);
 }
 
 void CCIWriter::finalize_out_file(std::ofstream& out_file, std::vector<CCI::IndexInfo>& index_infos) 
@@ -337,10 +360,11 @@ void CCIWriter::finalize_out_file(std::ofstream& out_file, std::vector<CCI::Inde
         position += index_info.value;
     }
 
-    CCI::Header cci_header(uncompressed_size, index_offset);
     uint32_t index_end = static_cast<uint32_t>(position >> CCI::INDEX_ALIGNMENT);
-
     out_file.write(reinterpret_cast<const char*>(&index_end), sizeof(uint32_t));
+
+    CCI::Header cci_header(uncompressed_size, index_offset);
+
     out_file.seekp(0, std::ios::beg);
     out_file.write(reinterpret_cast<char*>(&cci_header), sizeof(CCI::Header));
 
