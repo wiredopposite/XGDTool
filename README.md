@@ -23,8 +23,7 @@ This program is still in initial testing. If you experience an issue, please rep
 
 Settings and output directory are optionally.
 
-### Output format arguments
-These arguments are mutually exclusive.
+### Output format arguments (mutually exclusive)
 - ```--extract```   Extracts all files to a directory
 - ```--xiso```      Creates an Xiso image
 - ```--god```       Creates a Games on Demand image/directory structure
