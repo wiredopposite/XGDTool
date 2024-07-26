@@ -32,6 +32,7 @@ private:
     std::vector<std::filesystem::path> create_image(const InputInfo& input_info);   
     std::vector<std::filesystem::path> create_dir(const InputInfo& input_info);
     std::vector<std::filesystem::path> create_attach_xbe(const InputInfo& input_info);
+    void list_files(const InputInfo& input_info);
 
     bool has_extension(const std::filesystem::path& path, const std::string& extension);
     bool is_extracted_dir(const std::filesystem::path& path);

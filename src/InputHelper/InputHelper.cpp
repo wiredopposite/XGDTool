@@ -69,6 +69,9 @@ void InputHelper::process()
                 case FileType::XBE:
                     out_paths = create_attach_xbe(input_info);
                     break;
+                case FileType::LIST:
+                    list_files(input_info);
+                    break;
                 default:
                     if (input_info.file_type == FileType::ZAR)
                     {
@@ -78,7 +81,10 @@ void InputHelper::process()
                     break;
             } 
 
-            XGDLog() << "Successfully created: " << out_paths.front().string() + ((out_paths.size() > 1) ? (" and " + out_paths.back().string()) : "") << "\n";
+            if (!out_paths.empty())
+            {
+                XGDLog() << "Successfully created: " << out_paths.front().string() + ((out_paths.size() > 1) ? (" and " + out_paths.back().string()) : "") << "\n";
+            }
         } 
         catch (const XGDException& e) 
         {
@@ -180,4 +186,26 @@ std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInf
     attach_xbe_tool.generate_attach_xbe(out_path);
 
     return { out_path };
-}   
+}
+
+void InputHelper::list_files(const InputInfo& input_info) 
+{
+    if (input_info.file_type == FileType::DIR || input_info.file_type == FileType::ZAR) 
+    {
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot list files from directory/ZAR file");
+    }
+
+    std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
+
+    XGDLog() << "Files in image:\n";
+
+    for (const auto& entry : image_reader->directory_entries()) 
+    {
+        if ((entry.header.attributes & Xiso::ATTRIBUTE_DIRECTORY) || entry.path.empty())
+        {
+            continue;
+        }
+
+        XGDLog() << entry.path.string() << " (" << entry.header.file_size << " bytes)\n";
+    }
+}

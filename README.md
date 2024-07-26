@@ -24,7 +24,7 @@ This program is still in initial testing. If you experience an issue, please rep
 Settings and output directory are optionally.
 
 ### Output format arguments
-These arguments are mutually exclusive, you can only use on at a time.
+These arguments are mutually exclusive.
 - ```--extract```   Extracts all files to a directory
 - ```--xiso```      Creates an Xiso image
 - ```--god```       Creates a Games on Demand image/directory structure
@@ -38,10 +38,11 @@ These arguments are mutually exclusive, you can only use on at a time.
 - ```--xenia```     Automatically choose format and settings for use with Xenia
 
 Information:
+- ```--list```      List file contents of input image
 - ```--version```   Print version information
 - ```--help```      Print usage information
 
-## Settings arguments
+### Settings arguments
 These arguments can be stacked, though not all output formats will use them, in that case the option is ignored. If any conflicting settings are provided (e.g. full/partial scrub), the last one will be used. 
 - ```--partial-scrub```  Scrubs and trims the output image, random padding data is removed.
 - ```--full-scrub```     Completely reauthor the resulting image, this will produce the smallest file possible.
@@ -53,7 +54,13 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--debug```          Enable debug logging.
 - ```--quiet```          Disable all logging except for warnings and errors.
 
-# Build
+### Example arguments
+Produces a scrubbed CCI image and attach Xbe ready for use with OG Xbox:
+```XGDLog.exe --cci --partial-scrub --attach-xbe "input_file.iso" "output/directory"```
+Produces a GoD image ready for use with Xbox 360:
+```XGDLog.exe --god "input/xex_directory" "output/directory"```
+
+## Build
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
 
 The vcpkg toolchain file is linked in CMakeLists.txt already so you don't need to mess with it unless you'd like to use your own. In that case, comment out the lines pertaining to vckg at the top of CMakeLists.txt and add your own package manager's toolchain file. XGDTool relies on several libraries: lz4, zstd, nlohmann_json, cli11, openssl, curl

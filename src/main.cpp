@@ -37,13 +37,15 @@ int main(int argc, char** argv)
     output_format_group->add_flag_function("--xemu",     [&](int64_t) { auto_format = AutoFormat::XEMU;    }, "Choose format and settings for use with Xemu");
     output_format_group->add_flag_function("--xenia",    [&](int64_t) { auto_format = AutoFormat::XENIA;   }, "Choose format and settings for use with Xenia");
 
+    output_format_group->add_flag_function("--list",     [&](int64_t) { output_settings.file_type = FileType::LIST; }, "List file contents of input image");
+
     app.add_flag_function("--partial-scrub", [&](int64_t) { output_settings.scrub_type = ScrubType::PARTIAL; }, "Scrubs and trims the output image, random padding data is removed");
     app.add_flag_function("--full-scrub",    [&](int64_t) { output_settings.scrub_type = ScrubType::FULL;    }, "Completely reauthor the resulting image, this will produce the smallest file possible");
     app.add_flag_function("--split",         [&](int64_t) { output_settings.split = true;                    }, "Splits the resulting XISO file if it's too large for OG Xbox");
     app.add_flag_function("--rename",        [&](int64_t) { output_settings.rename_xbe = true;               }, "Patches the title field of resulting XBE files to one found in the database");
     app.add_flag_function("--attach-xbe",    [&](int64_t) { output_settings.attach_xbe = true;               }, "Generates an attach XBE file along with the output file");
     app.add_flag_function("--am-patch",      [&](int64_t) { output_settings.allowed_media_patch = true;      }, "Patches the Allowed Media field in resulting XBE files");
-    app.add_flag_function("--offline",       [&](int64_t) { output_settings.offline_mode = true;             }, "Disables online functionality");
+    app.add_flag_function("--offline",       [&](int64_t) { output_settings.offline_mode = true;             }, "Disables online functionality, will result in less accurate file naming");
     app.add_flag_function("--debug",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Debug);         }, "Enable debug logging");
     app.add_flag_function("--quiet",         [&](int64_t) { XGDLog().set_log_level(LogLevel::Error);         }, "Disable all logging except for warnings and errors");
 
