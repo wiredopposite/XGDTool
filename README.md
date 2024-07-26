@@ -56,8 +56,11 @@ These arguments can be stacked, though not all output formats will use them, in 
 
 ### Example arguments
 Produces a scrubbed CCI image and attach Xbe ready for use with OG Xbox:
+
 ```XGDLog.exe --cci --partial-scrub --attach-xbe "input_file.iso" "output/directory"```
+
 Produces a GoD image ready for use with Xbox 360:
+
 ```XGDLog.exe --god "input/xex_directory" "output/directory"```
 
 ## Build
