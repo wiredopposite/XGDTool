@@ -34,6 +34,9 @@ public:
     const Xbe::Cert& xbe_cert() { return xbe_cert_; };
 
 private:
+    const std::string REPACK_LIST_URL = "https://raw.githubusercontent.com/Team-Resurgent/Repackinator/main/RepackList.json";
+    const std::string UNITY_URL_PREFIX = "http://xboxunity.net/Resources/Lib/TitleUpdateInfo.php?titleid=";
+
     bool offline_mode_{false};
 
     std::filesystem::path in_dir_path_; 
@@ -61,6 +64,7 @@ private:
 
     template <typename T>
     void write_little_endian(std::ostream& os, T value);
+    
     std::string create_unique_name(const Xex::ExecutionInfo& xex_cert);
     void clean_title_name(std::string& title);
 

@@ -16,3 +16,8 @@ Parts of XGDTool are based on the following projects:
 - **Repository**: [xbox_shrinker](https://github.com/Qubits01/xbox_shrinker)
 - **Copyright (c)**: 2021 Qubits01
 - **License**: [MIT License](https://github.com/Qubits01/xbox_shrinker?tab=License-1-ov-file)
+
+### ZArchive
+- **Repository**: [ZArchive](https://github.com/Exzap/ZArchive)
+- **Copyright (c)**: 2022 Exzap
+- **License**: [MIT License](https://github.com/Exzap/ZArchive?tab=MIT-0-1-ov-file)

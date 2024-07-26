@@ -63,6 +63,8 @@ void InputHelper::process()
 
             switch (output_settings_.file_type) 
             {
+                case FileType::UNKNOWN:
+                    throw XGDException(ErrCode::ISO_INVALID, HERE(), "Unknown output file type");
                 case FileType::DIR:
                     out_paths = create_dir(input_info);
                     break;
@@ -73,10 +75,6 @@ void InputHelper::process()
                     list_files(input_info);
                     break;
                 default:
-                    if (input_info.file_type == FileType::ZAR)
-                    {
-                        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create image from ZAR file");
-                    }
                     out_paths = create_image(input_info);
                     break;
             } 
@@ -97,11 +95,6 @@ void InputHelper::process()
             XGDLog(Error) << e.what() << "\n";
         }
     }
-}
-
-std::vector<std::filesystem::path> InputHelper::failed_inputs() 
-{
-    return failed_inputs_;
 }
 
 std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& input_info)

@@ -16,7 +16,9 @@ public:
     InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings);
 
     void process();
-    std::vector<std::filesystem::path> failed_inputs();
+
+    //Return failed input paths after processing
+    std::vector<std::filesystem::path> failed_inputs() { return failed_inputs_; }; 
 
 private:
     struct InputInfo {

@@ -116,7 +116,7 @@ void TitleHelper::initialize_offline(ExeTool& exe_tool)
 
 bool TitleHelper::set_ogx_titles_online(ExeTool& exe_tool) 
 {
-    std::string url = "https://raw.githubusercontent.com/Team-Resurgent/Repackinator/main/RepackList.json";
+    std::string url = REPACK_LIST_URL;
     std::string json_string;
 
     CURL* curl = curl_easy_init();
@@ -339,7 +339,7 @@ std::string TitleHelper::unity_query(const std::string& title_id)
 
     if (curl) 
     {
-        std::string url = "http://xboxunity.net/Resources/Lib/TitleUpdateInfo.php?titleid=" + title_id;
+        std::string url = UNITY_URL_PREFIX + title_id;
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, unity_write_callback);
