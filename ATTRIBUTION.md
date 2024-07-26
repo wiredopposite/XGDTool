@@ -15,4 +15,4 @@ Parts of XGDTool are based on the following projects:
 ## xbox_shrinker
 - **Repository**: [xbox_shrinker](https://github.com/Qubits01/xbox_shrinker)
 - **Copyright (c)**: 2021 Qubits01
-- **License**: 
+- **License**: [MIT License](https://github.com/Qubits01/xbox_shrinker?tab=License-1-ov-file)
