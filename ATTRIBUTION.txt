@@ -1,8 +1,5 @@
 Parts of XGDTool are based on [extract-xiso](https://github.com/XboxDev/extract-xiso)
-
 Copyright (c) 2003 in <in@fishtank.com>  
-
-
 under a [proprietary license](https://github.com/XboxDev/extract-xiso?tab=License-1-ov-file)
 
 Parts of XGDTool are based on [Repackinator](https://github.com/Team-Resurgent/Repackinator)
