@@ -304,8 +304,6 @@ bool TitleHelper::internet_connected()
     return is_connected;
 }
 
-// Repackinator
-
 size_t TitleHelper::rpk_write_callback(void* contents, size_t size, size_t nmemb, std::string* s) 
 {
     size_t newLength = size * nmemb;
@@ -320,8 +318,6 @@ size_t TitleHelper::rpk_write_callback(void* contents, size_t size, size_t nmemb
     }
     return newLength;
 }
-
-// Unity
 
 size_t TitleHelper::unity_write_callback(void* contents, size_t size, size_t nmemb, void* userp) 
 {
