@@ -70,7 +70,7 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
         } 
         else 
         {
-            std::fill(buffer.begin(), buffer.end(), 0);
+            std::memset(buffer.data(), 0x00, buffer.size());
         }
 
         out_file.write(buffer.data(), Xiso::SECTOR_SIZE);
@@ -202,20 +202,20 @@ void XisoWriter::write_file_from_reader(AvlTree::Node* node, split::ofstream* ou
 
     while (bytes_remaining > 0) 
     {
-        uint64_t bytes_to_read = std::min(bytes_remaining, XGD::BUFFER_SIZE);
+        uint64_t read_size = std::min(bytes_remaining, XGD::BUFFER_SIZE);
 
-        image_reader_->read_bytes(read_position, bytes_to_read, buffer.data());
+        image_reader_->read_bytes(read_position, read_size, buffer.data());
 
-        out_file->write(buffer.data(), bytes_to_read);
+        out_file->write(buffer.data(), read_size);
         if (out_file->fail()) 
         {
             throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to write file data: " + node->filename);
         }
 
-        bytes_remaining -= bytes_to_read;
-        read_position += bytes_to_read;
+        bytes_remaining -= read_size;
+        read_position += read_size;
 
-        XGDLog().print_progress(bytes_processed_ += bytes_to_read, total_bytes_);
+        XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
     }
 
     if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file->tellp()) 
@@ -234,9 +234,9 @@ void XisoWriter::write_file_from_directory(AvlTree::Node* node, split::ofstream*
     }
 
     out_file->seekp(node->start_sector * Xiso::SECTOR_SIZE, std::ios::beg);
-    if (out_file->fail() || out_file->tellp() != (node->start_sector * Xiso::SECTOR_SIZE)) 
+    if (out_file->fail()) 
     {
-        throw XGDException(ErrCode::FILE_WRITE, HERE(), "Failed to seek to file sector: " + node->filename);
+        throw XGDException(ErrCode::FILE_SEEK, HERE(), "Failed to seek to file sector: " + node->filename);
     }
 
     std::ifstream in_file(node->path, std::ios::binary);

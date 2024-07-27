@@ -22,11 +22,14 @@ const XGDException::ErrorMap XGDException::error_map[] = {
     { Code::UNK,          "Unknown error" }
 };
 
-void XGDException::log_error(Code code, const std::string& info, const std::string& message) {
+void XGDException::log_error(Code code, const std::string& info, const std::string& message) 
+{
     std::string error_message = "Unknown error";
 
-    for (const auto& error : error_map) {
-        if (error.code == code) {
+    for (const auto& error : error_map) 
+    {
+        if (error.code == code) 
+        {
             error_message = error.message;
             break;
         }

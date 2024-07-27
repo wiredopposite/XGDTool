@@ -43,23 +43,28 @@ public:
     static const ErrorMap error_map[];
 
     XGDException(Code code, const std::string& info, const std::string& message = "")
-        : code_(code), file_line_(info), message_(message) {
+        : code_(code), file_line_(info), message_(message) 
+        {
             log_error(code, info, message);
         };
 
-    const char* what() const noexcept override {
+    const char* what() const noexcept override 
+    {
         return full_message_.c_str();
     }
 
-    Code code() const noexcept {
+    Code code() const noexcept 
+    {
         return code_;
     }
 
-    std::string file_line() const noexcept {
+    std::string file_line() const noexcept 
+    {
         return file_line_;
     }
 
-    std::string message() const noexcept {
+    std::string message() const noexcept 
+    {
         return message_;
     }
 

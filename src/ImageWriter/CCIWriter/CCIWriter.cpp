@@ -7,7 +7,7 @@ CCIWriter::CCIWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType 
     : image_reader_(image_reader), scrub_type_(scrub_type) {}
 
 CCIWriter::CCIWriter(const std::filesystem::path& in_dir_path)
-    :   in_dir_path_(in_dir_path) {}
+    : in_dir_path_(in_dir_path) {}
 
 std::vector<std::filesystem::path> CCIWriter::convert(const std::filesystem::path& out_cci_path) 
 {
@@ -79,7 +79,7 @@ void CCIWriter::convert_to_cci_from_avl(AvlTree& avl_tree)
         throw std::runtime_error("Failed to open output file: " + out_filepath_1_.string());
     }
 
-    XGDLog() << "Writing CCI file..." << XGDLog::Endl;
+    XGDLog() << "Writing CCI file" << XGDLog::Endl;
 
     std::vector<CCI::IndexInfo> index_infos;
     index_infos.reserve((avl_tree.out_iso_size() / Xiso::SECTOR_SIZE) + 1);
@@ -230,8 +230,9 @@ void CCIWriter::convert_to_cci(const bool scrub)
         throw std::runtime_error("Failed to open output file: " + out_filepath_1_.string());
     }
 
+    XGDLog() << "Writing CCI file" << XGDLog::Endl;
+
     std::vector<char> read_buffer(Xiso::SECTOR_SIZE);
-    const int multiple = (1 << CCI::INDEX_ALIGNMENT);
     uint32_t current_sector = sector_offset;
 
     std::vector<CCI::IndexInfo> index_infos;

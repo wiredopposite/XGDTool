@@ -1,3 +1,4 @@
+#include "XGDLog.h"
 #include "Formats/Xiso.h"
 
 Xiso::FileTime::FileTime() 
@@ -5,8 +6,10 @@ Xiso::FileTime::FileTime()
     double tmp;
     time_t now;
 
-    if ((now = std::time(nullptr)) == -1) 
+    if ((now = std::time(nullptr)) == -1)
     {
+        XGDLog(Error) << "Warning: Failed to retrieve current time from OS, using default." << XGDLog::Endl;
+
         low = 0xd7d3e000;
         high = 0x01c55c11;
     } 
@@ -34,6 +37,7 @@ Xiso::Header::Header(const uint32_t in_root_sector, const uint32_t in_root_size,
 
     EndianUtils::big_32(ecma119_header.vol_space_size_big);
     EndianUtils::little_32(ecma119_header.vol_space_size_little);
+    
     EndianUtils::little_32(root_sector);
     EndianUtils::little_32(root_size);
 

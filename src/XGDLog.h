@@ -10,28 +10,35 @@ enum LogLevel {
     Debug
 };
 
-class XGDLog {
+class XGDLog 
+{
 public:
     enum Manip { Endl = 176 };
 
     XGDLog(LogLevel level = Normal) : log_level(level) {}
 
-    ~XGDLog() {
-        if (should_log()) {
+    ~XGDLog() 
+    {
+        if (should_log()) 
+        {
             std::cerr << oss.str();
         }
     }
 
     template <typename T>
-    XGDLog& operator<<(const T& value) {
-        if (should_log()) {
+    XGDLog& operator<<(const T& value) 
+    {
+        if (should_log()) 
+        {
             oss << value;
         }
         return *this;
     }
 
-    XGDLog& operator<<(Manip manip) {
-        if (manip == Manip::Endl && should_log()) {
+    XGDLog& operator<<(Manip manip) 
+    {
+        if (manip == Manip::Endl && should_log()) 
+        {
             oss << std::endl;
             std::cerr << oss.str();
             oss.str("");  // Clear the stream after flushing
@@ -40,22 +47,25 @@ public:
         return *this;
     }
 
-    void set_log_level(LogLevel level) {
+    void set_log_level(LogLevel level) 
+    {
         current_level = level;
     }
 
-    bool should_log() const {
+    bool should_log() const 
+    {
         return current_level >= log_level;
     }
 
-    LogLevel get_log_level() const {
+    LogLevel get_log_level() const 
+    {
         return current_level;
     }
 
     void print_progress(uint64_t processed, uint64_t total);
 
-    static LogLevel current_level;
 private:
+    static LogLevel current_level;
     std::ostringstream oss;
     LogLevel log_level;    
 };

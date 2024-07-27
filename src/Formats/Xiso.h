@@ -33,8 +33,6 @@ namespace Xiso {
 
     constexpr uint32_t ROOT_DIRECTORY_SECTOR = 0x108;
 
-    // constexpr uint32_t FILENAME_MAX_CHARS  = 255;
-
     constexpr uint8_t ATTRIBUTE_READ_ONLY = 0x01;
     constexpr uint8_t ATTRIBUTE_HIDDEN    = 0x02;
     constexpr uint8_t ATTRIBUTE_SYSTEM    = 0x04;
