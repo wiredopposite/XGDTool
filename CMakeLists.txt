@@ -3,11 +3,26 @@ cmake_minimum_required(VERSION 3.11)
 set(VCPKG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg)
 include (${CMAKE_SOURCE_DIR}/cmake/setup_vcpkg.cmake)
 set(CMAKE_TOOLCHAIN_FILE ${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(VCPKG_TARGET_TRIPLET x64-windows-static CACHE STRING "Vcpkg target triplet")
 
 project(XGDTool)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /MTd")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /MT")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+    set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+endif()
 
 include(${CMAKE_SOURCE_DIR}/cmake/embed_resources.cmake)
 
@@ -17,7 +32,6 @@ set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
 include_directories(
     ${SRC_DIR} 
-    ${CMAKE_SOURCE_DIR}/generated
 )
 
 set(SRC 
@@ -43,6 +57,8 @@ set(SRC
     ${SRC_DIR}/ImageWriter/CSOWriter/CSOWriter.cpp
 
     ${SRC_DIR}/ImageExtractor/ImageExtractor.cpp
+
+    ${SRC_DIR}/ZARExtractor/ZARExtractor.cpp
 
     ${SRC_DIR}/Executable/ExeTool.cpp
     ${SRC_DIR}/Executable/AttachXbeTool.cpp

@@ -82,7 +82,7 @@ void CSOReader::read_sector(const uint32_t sector, char* out_buffer)
 
     in_files_[file_idx]->seekg(index_infos_[sector].value, std::ios::beg);
 
-    if (index_infos_[sector].compressed)
+    if (index_infos_[sector].compressed || read_len < Xiso::SECTOR_SIZE)
     {
         size_t compressed_size = sizeof(LZ4F_HEADER) + read_len + sizeof(LZ4F_FOOTER);
         size_t decompressed_size = Xiso::SECTOR_SIZE;

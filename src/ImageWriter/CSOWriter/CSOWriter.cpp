@@ -77,7 +77,7 @@ void CSOWriter::convert_to_cso(const bool scrub)
 
     uint32_t sectors_to_write = end_sector - sector_offset;
 
-    prog_total_ = sectors_to_write;
+    prog_total_ = sectors_to_write - 1;
     prog_processed_ = 0;
 
     std::ofstream out_file(out_filepath_1_, std::ios::binary);
@@ -131,7 +131,7 @@ void CSOWriter::convert_to_cso(const bool scrub)
         } 
         else 
         {
-            std::fill(read_buffer.begin(), read_buffer.end(), 0);
+            std::memset(read_buffer.data(), 0x00, read_buffer.size());
         }
 
         compress_and_write_sector(out_file, block_index, read_buffer.data());

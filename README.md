@@ -10,8 +10,8 @@ This program is still in initial testing. If you experience an issue, please rep
     - GoD / Games on Demand
     - CCI
     - CSO
-    - ZAR (As output format only)
-- Seamless conversion, you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, all without writing any temporary files.
+    - ZAR
+- Seamless conversion, you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, without writing any temporary files. The only format requiring temporary files is ZAR when provided as input.
 - Batch processing, a folder full of different game formats can be batch converted to a single format with one command line argument.
 - Automatically finds split files when only one part is provided as an input path, assuming they're named in this format: ```name.1.extension``` ```name.2.extension```.
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
@@ -19,9 +19,9 @@ This program is still in initial testing. If you experience an issue, please rep
 - Online database lookup for accurate file naming (can be disabled).
 
 ## Usage
-```XGDTool.exe --output_format --settings <input_path> <output_directory>```
+```XGDTool.exe <output_format> <settings_flags> <input_path> <output_directory>```
 
-Settings and output directory are optionally.
+Settings flags and output directory are optional.
 
 ### Output format arguments (mutually exclusive)
 - ```--extract```   Extracts all files to a directory
@@ -37,11 +37,11 @@ Settings and output directory are optionally.
 - ```--xenia```     Automatically choose format and settings for use with Xenia
 
 Information:
-- ```--list```      List file contents of input image
+- ```--list```      List contents of input file
 - ```--version```   Print version information
 - ```--help```      Print usage information
 
-### Settings arguments
+### Settings flags
 These arguments can be stacked, though not all output formats will use them, in that case the option is ignored. If any conflicting settings are provided (e.g. full/partial scrub), the last one will be used. 
 - ```--partial-scrub```  Scrubs and trims the output image, random padding data is removed.
 - ```--full-scrub```     Completely reauthor the resulting image, this will produce the smallest file possible.
@@ -54,13 +54,14 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--quiet```          Disable all logging except for warnings and errors.
 
 ### Example arguments
-Produces a scrubbed CCI image and attach Xbe ready for use with OG Xbox:
-
+Produces a scrubbed CCI image and attach Xbe ready for use with OG Xbox:<br>
 ```XGDLog.exe --cci --partial-scrub --attach-xbe "input_file.iso" "output/directory"```
 
-Produces a GoD image ready for use with Xbox 360:
-
+Produces a GoD image ready for use with Xbox 360:<br>
 ```XGDLog.exe --god "input/xex_directory" "output/directory"```
+
+Produces a ZAR archive ready for use with Xenia:<br>
+```XGDLog.exe --zar "input_file.iso" "output/directory"```
 
 ## Build
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 

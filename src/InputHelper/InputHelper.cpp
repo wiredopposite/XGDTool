@@ -3,6 +3,7 @@
 #include "ImageExtractor/ImageExtractor.h"    
 #include "InputHelper/InputHelper.h"
 #include "Executable/AttachXbeTool.h"
+#include "ZARExtractor/ZARExtractor.h"
 
 InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings)
     : output_directory_(out_directory), output_settings_(output_settings)
@@ -53,7 +54,7 @@ InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path ou
 
 void InputHelper::process() 
 {
-    for (const auto& input_info : input_infos_) 
+    for (auto& input_info : input_infos_) 
     {
         try 
         {
@@ -97,8 +98,17 @@ void InputHelper::process()
     }
 }
 
-std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& input_info)
+std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_info)
 {
+    std::filesystem::path temp_path;
+
+    if (input_info.file_type == FileType::ZAR) 
+    {
+        temp_path = extract_temp_zar(input_info.paths.front());
+        input_info.paths = { temp_path };
+        input_info.file_type = FileType::DIR;
+    }
+
     std::unique_ptr<TitleHelper> title_helper;
     std::shared_ptr<ImageReader> image_reader;
 
@@ -129,6 +139,18 @@ std::vector<std::filesystem::path> InputHelper::create_image(const InputInfo& in
 
     std::vector<std::filesystem::path> final_out_paths = image_writer->convert(out_path);
 
+    if (!temp_path.empty()) 
+    {
+        try
+        {
+            std::filesystem::remove_all(temp_path);
+        }
+        catch (const std::filesystem::filesystem_error& e)
+        {
+            XGDException(ErrCode::FS_REMOVE, HERE(), e.what());
+        }
+    }
+
     if (output_settings_.attach_xbe && title_helper->platform() == Platform::OGX)
     {
         AttachXbeTool attach_xbe_tool(*title_helper);
@@ -145,6 +167,13 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
         throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create directory from directory");
     }
 
+    if (input_info.file_type == FileType::ZAR)
+    {
+        ZARExtractor zar_extractor(input_info.paths.front());
+        zar_extractor.extract(output_directory_ / input_info.paths.front().stem());
+        return { output_directory_ / input_info.paths.front().stem() };
+    }
+
     std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
 
     TitleHelper title_helper(image_reader, output_settings_.offline_mode);
@@ -159,9 +188,9 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
 
 std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInfo& input_info)
 {
-    if (input_info.file_type == FileType::DIR)
+    if (input_info.file_type == FileType::DIR || input_info.file_type == FileType::ZAR)
     {
-        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create attach XBE from directory");
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create attach XBE from directory/ZAR file");
     }
 
     std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
@@ -183,14 +212,21 @@ std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInf
 
 void InputHelper::list_files(const InputInfo& input_info) 
 {
-    if (input_info.file_type == FileType::DIR || input_info.file_type == FileType::ZAR) 
+    if (input_info.file_type == FileType::DIR) 
     {
-        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot list files from directory/ZAR file");
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot list files from directory");
+    }
+
+    XGDLog() << "Files in image:\n";
+
+    if (input_info.file_type == FileType::ZAR) 
+    {
+        ZARExtractor zar_extractor(input_info.paths.front());
+        zar_extractor.list_files();
+        return;
     }
 
     std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
-
-    XGDLog() << "Files in image:\n";
 
     for (const auto& entry : image_reader->directory_entries()) 
     {
@@ -201,4 +237,23 @@ void InputHelper::list_files(const InputInfo& input_info)
 
         XGDLog() << entry.path.string() << " (" << entry.header.file_size << " bytes)\n";
     }
+}
+
+std::filesystem::path InputHelper::extract_temp_zar(const std::filesystem::path& in_path)
+{
+    std::filesystem::path temp_path = output_directory_ / "_temp";
+
+    try 
+    {
+        std::filesystem::create_directories(temp_path);
+    } 
+    catch (const std::filesystem::filesystem_error& e) 
+    {
+        XGDException(ErrCode::FS_MKDIR, HERE(), e.what());
+    }
+    
+    ZARExtractor zar_extractor(in_path);
+    zar_extractor.extract(temp_path);
+
+    return temp_path;
 }

@@ -31,10 +31,11 @@ private:
     std::filesystem::path output_directory_;
     std::vector<std::filesystem::path> failed_inputs_;
 
-    std::vector<std::filesystem::path> create_image(const InputInfo& input_info);   
+    std::vector<std::filesystem::path> create_image(InputInfo& input_info);   
     std::vector<std::filesystem::path> create_dir(const InputInfo& input_info);
     std::vector<std::filesystem::path> create_attach_xbe(const InputInfo& input_info);
     void list_files(const InputInfo& input_info);
+    std::filesystem::path extract_temp_zar(const std::filesystem::path& in_path);
 
     bool has_extension(const std::filesystem::path& path, const std::string& extension);
     bool is_extracted_dir(const std::filesystem::path& path);

@@ -221,7 +221,7 @@ void CCIWriter::convert_to_cci(const bool scrub)
         end_sector = std::min(end_sector, image_reader.max_data_sector() + 1);
     }
 
-    prog_total_ = end_sector - sector_offset;
+    prog_total_ = end_sector - sector_offset - 1;
     prog_processed_ = 0;
 
     std::ofstream out_file(out_filepath_1_, std::ios::binary);

@@ -24,12 +24,28 @@ endfunction()
 bootstrap_vcpkg()
 
 execute_process(COMMAND ${VCPKG_DIR}/vcpkg integrate install)
-execute_process(COMMAND ${VCPKG_DIR}/vcpkg install lz4)
-execute_process(COMMAND ${VCPKG_DIR}/vcpkg install nlohmann-json)
-execute_process(COMMAND ${VCPKG_DIR}/vcpkg install cli11)
-execute_process(COMMAND ${VCPKG_DIR}/vcpkg install zstd)
-execute_process(COMMAND ${VCPKG_DIR}/vcpkg install openssl)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install lz4:x64-windows-static)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install nlohmann-json:x64-windows-static)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install cli11:x64-windows-static)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install zstd:x64-windows-static)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install openssl:x64-windows-static)
+execute_process(COMMAND ${VCPKG_DIR}/vcpkg install curl:x64-windows-static)
 
-if(WIN32)
-    execute_process(COMMAND ${VCPKG_DIR}/vcpkg install curl:x64-windows)
-endif()
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg integrate install)
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg install lz4)
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg install nlohmann-json)
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg install cli11)
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg install zstd)
+# execute_process(COMMAND ${VCPKG_DIR}/vcpkg install openssl)
+
+# vcpkg install lz4:x64-windows-static
+# vcpkg install zstd:x64-windows-static
+# vcpkg install nlohmann-json:x64-windows-static
+# vcpkg install cli11:x64-windows-static
+# vcpkg install openssl:x64-windows-static
+# vcpkg install curl:x64-windows-static
+
+
+# if(WIN32)
+#     execute_process(COMMAND ${VCPKG_DIR}/vcpkg install curl:x64-windows)
+# endif()
