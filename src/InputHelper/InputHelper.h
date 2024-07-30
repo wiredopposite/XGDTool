@@ -13,19 +13,23 @@
 class InputHelper
 {
 public:
-    InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings);
-
-    void process();
-
-    //Return failed input paths after processing
-    std::vector<std::filesystem::path> failed_inputs() { return failed_inputs_; }; 
-
-private:
     struct InputInfo {
         FileType file_type;
         std::vector<std::filesystem::path> paths;
     };
 
+    InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings);
+    InputHelper(std::vector<std::filesystem::path> in_paths, std::filesystem::path out_directory, OutputSettings output_settings);
+
+    const std::vector<InputInfo>& input_infos() { return input_infos_; };
+
+    void process_all();
+    void process_single(InputInfo input_info);
+
+    //Return failed input paths after processing
+    const std::vector<std::filesystem::path>& failed_inputs() { return failed_inputs_; }; 
+
+private:
     std::vector<InputInfo> input_infos_;
     OutputSettings output_settings_;
     std::filesystem::path output_directory_;
@@ -36,7 +40,8 @@ private:
     std::vector<std::filesystem::path> create_attach_xbe(const InputInfo& input_info);
     void list_files(const InputInfo& input_info);
     std::filesystem::path extract_temp_zar(const std::filesystem::path& in_path);
-
+    
+    void add_input(const std::filesystem::path& in_path);
     bool has_extension(const std::filesystem::path& path, const std::string& extension);
     bool is_extracted_dir(const std::filesystem::path& path);
     bool is_god_dir_helper(const std::filesystem::path& path, int current_depth, int max_depth);
@@ -44,6 +49,9 @@ private:
     bool is_batch_dir(const std::filesystem::path& path);
     bool is_part_2_file(const std::filesystem::path& path);
     FileType get_filetype(const std::filesystem::path& path);
+
+    void remove_duplicate_infos(std::vector<InputInfo>& input_infos);
+    OutputSettings get_auto_output_settings(const AutoFormat auto_format);
     std::vector<std::filesystem::path> find_split_filepaths(const std::filesystem::path& in_filepath);
     std::filesystem::path get_output_path(const std::filesystem::path& out_directory, TitleHelper& title_helper);
 };

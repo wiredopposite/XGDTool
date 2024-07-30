@@ -5,7 +5,8 @@
 #include <sstream>
 
 enum LogLevel {
-    Error = 0,
+    None = 0,
+    Error,
     Normal,
     Debug
 };
@@ -15,7 +16,8 @@ class XGDLog
 public:
     enum Manip { Endl = 176 };
 
-    XGDLog(LogLevel level = Normal) : log_level(level) {}
+    XGDLog(LogLevel level = Normal) 
+        : log_level(level) {}
 
     ~XGDLog() 
     {

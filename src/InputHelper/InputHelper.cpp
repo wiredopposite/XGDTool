@@ -6,15 +6,50 @@
 #include "ZARExtractor/ZARExtractor.h"
 
 InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings)
-    : output_directory_(out_directory), output_settings_(output_settings)
+    :   output_directory_(out_directory), 
+        output_settings_((output_settings.auto_format != AutoFormat::NONE) ? get_auto_output_settings(output_settings.auto_format) : output_settings)
 {
+    add_input(in_path);
+
+    if (output_directory_.empty()) 
+    {
+        output_directory_ = in_path.parent_path() / "XGDTool_Output";
+    }
+
+    output_directory_ = std::filesystem::absolute(output_directory_);
+}
+
+InputHelper::InputHelper(std::vector<std::filesystem::path> in_paths, std::filesystem::path out_directory, OutputSettings output_settings)
+    :   output_directory_(out_directory), 
+        output_settings_((output_settings.auto_format != AutoFormat::NONE) ? get_auto_output_settings(output_settings.auto_format) : output_settings)
+{
+    for (const auto& in_path : in_paths) 
+    {
+        add_input(in_path);
+    }
+
+    if (output_directory_.empty()) 
+    {
+        output_directory_ = in_paths.front().parent_path() / "XGDTool_Output";
+    }
+
+    output_directory_ = std::filesystem::absolute(output_directory_);
+}
+
+void InputHelper::add_input(const std::filesystem::path& in_path) 
+{
+    if (in_path.empty() || !std::filesystem::exists(in_path)) 
+    {
+        return;
+    }
+
     FileType in_file_type = get_filetype(in_path);
 
     if (in_file_type == FileType::UNKNOWN) 
     {
         if (!is_batch_dir(in_path)) 
         {
-            throw XGDException(ErrCode::ISO_INVALID, HERE(), "Unknown input file type");
+            return;
         }
 
         for (const auto& entry : std::filesystem::directory_iterator(in_path)) 
@@ -44,16 +79,13 @@ InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path ou
         }
     }
 
-    if (output_directory_.empty()) 
-    {
-        output_directory_ = in_path.parent_path() / "XGDTool_Output";
-    }
-
-    output_directory_ = std::filesystem::absolute(output_directory_);
+    remove_duplicate_infos(input_infos_);
 }
 
-void InputHelper::process() 
+void InputHelper::process_all() 
 {
+    failed_inputs_.clear();
+
     for (auto& input_info : input_infos_) 
     {
         try 
@@ -98,6 +130,49 @@ void InputHelper::process()
     }
 }
 
+void InputHelper::process_single(InputInfo input_info)
+{
+    try 
+    {
+        XGDLog() << "Processing: " << input_info.paths.front().string() + ((input_info.paths.size() > 1) ? (" and " + input_info.paths.back().string()) : "") << "\n";
+        
+        std::vector<std::filesystem::path> out_paths;
+
+        switch (output_settings_.file_type) 
+        {
+            case FileType::UNKNOWN:
+                throw XGDException(ErrCode::ISO_INVALID, HERE(), "Unknown output file type");
+            case FileType::DIR:
+                out_paths = create_dir(input_info);
+                break;
+            case FileType::XBE:
+                out_paths = create_attach_xbe(input_info);
+                break;
+            case FileType::LIST:
+                list_files(input_info);
+                break;
+            default:
+                out_paths = create_image(input_info);
+                break;
+        } 
+
+        if (!out_paths.empty())
+        {
+            XGDLog() << "Successfully created: " << out_paths.front().string() + ((out_paths.size() > 1) ? (" and " + out_paths.back().string()) : "") << "\n";
+        }
+    } 
+    catch (const XGDException& e) 
+    {
+        failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
+        XGDLog(Error) << e.what() << "\n";
+    }
+    catch (const std::exception& e) 
+    {
+        failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
+        XGDLog(Error) << e.what() << "\n";
+    }
+}
+
 std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_info)
 {
     std::filesystem::path temp_path;
@@ -107,6 +182,10 @@ std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_in
         temp_path = extract_temp_zar(input_info.paths.front());
         input_info.paths = { temp_path };
         input_info.file_type = FileType::DIR;
+    }
+    else if (input_info.file_type == FileType::XBE)
+    {
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create image from XBE file");
     }
 
     std::unique_ptr<TitleHelper> title_helper;
@@ -147,7 +226,7 @@ std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_in
         }
         catch (const std::filesystem::filesystem_error& e)
         {
-            XGDException(ErrCode::FS_REMOVE, HERE(), e.what());
+            throw XGDException(ErrCode::FS_REMOVE, HERE(), e.what());
         }
     }
 
@@ -166,8 +245,11 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
     {
         throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create directory from directory");
     }
-
-    if (input_info.file_type == FileType::ZAR)
+    else if (input_info.file_type == FileType::XBE)
+    {
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot extract XBE file");
+    }
+    else if (input_info.file_type == FileType::ZAR)
     {
         ZARExtractor zar_extractor(input_info.paths.front());
         zar_extractor.extract(output_directory_ / input_info.paths.front().stem());
@@ -188,9 +270,9 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
 
 std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInfo& input_info)
 {
-    if (input_info.file_type == FileType::DIR || input_info.file_type == FileType::ZAR)
+    if (input_info.file_type == FileType::DIR || input_info.file_type == FileType::ZAR || input_info.file_type == FileType::XBE)
     {
-        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create attach XBE from directory/ZAR file");
+        throw XGDException(ErrCode::ISO_INVALID, HERE(), "Cannot create attach XBE from input type");
     }
 
     std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);

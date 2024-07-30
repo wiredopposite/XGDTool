@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Utils/StringUtils.h"
 #include "InputHelper/InputHelper.h"
 
@@ -12,21 +14,29 @@ bool InputHelper::has_extension(const std::filesystem::path& path, const std::st
 
 bool InputHelper::is_extracted_dir(const std::filesystem::path& path) 
 {
+    bool exe_found = false; 
+    
     for (const auto& entry : std::filesystem::directory_iterator(path)) 
     {
         if (entry.is_regular_file()) 
         {
             if (has_extension(entry.path(), ".xbe")) 
             {
-                return true;
+                exe_found = true;
             }
             else if (has_extension(entry.path(), ".xex")) 
             {
-                return true;
+                exe_found = true;
+            }
+            else if (has_extension(entry.path(), ".iso") ||
+                     has_extension(entry.path(), ".cso") ||
+                     has_extension(entry.path(), ".cci"))
+            {
+                return false;
             }
         }
     }
-    return false;
+    return exe_found;
 }
 
 bool InputHelper::is_god_dir_helper(const std::filesystem::path& path, int current_depth, int max_depth) 
@@ -58,7 +68,7 @@ bool InputHelper::is_god_dir_helper(const std::filesystem::path& path, int curre
 
 bool InputHelper::is_god_dir(const std::filesystem::path& path) 
 {
-    return is_god_dir_helper(path, 0, 3);
+    return is_god_dir_helper(path, 0, 2);
 }
 
 FileType InputHelper::get_filetype(const std::filesystem::path& path) 
@@ -201,4 +211,57 @@ std::filesystem::path InputHelper::get_output_path(const std::filesystem::path& 
             throw XGDException(ErrCode::MISC, HERE(), "Invalid output file type");
     }
     return out_path;
+}
+
+OutputSettings InputHelper::get_auto_output_settings(const AutoFormat auto_format) 
+{
+    OutputSettings output_settings;
+
+    switch (auto_format) 
+    {
+        case AutoFormat::OGXBOX:
+            output_settings.file_type = FileType::DIR;
+            output_settings.allowed_media_patch = true;
+            output_settings.rename_xbe = true;
+            break;
+        case AutoFormat::XBOX360:
+            output_settings.file_type = FileType::GoD;
+            output_settings.scrub_type = ScrubType::FULL;
+            break;
+        case AutoFormat::XENIA:
+        case AutoFormat::XEMU:
+            output_settings.file_type = FileType::ISO;
+            output_settings.scrub_type = ScrubType::FULL;
+            output_settings.attach_xbe = false;
+            output_settings.allowed_media_patch = false;
+            output_settings.split = false;
+            output_settings.xemu_paths = true;
+            break;
+        default:
+            break;
+    }
+
+    return output_settings;
+}
+
+void InputHelper::remove_duplicate_infos(std::vector<InputInfo>& input_infos)
+{
+    std::sort(input_infos.begin(), input_infos.end(), [](const InputInfo& a, const InputInfo& b) 
+    {
+        return a.paths.front() < b.paths.front();
+    });
+
+    auto it = input_infos.begin();
+
+    while (it != input_infos.end() - 1) 
+    {
+        if (it->paths.front() == (it + 1)->paths.front()) 
+        {
+            it = input_infos.erase(it);
+        } 
+        else 
+        {
+            ++it;
+        }
+    }
 }

@@ -3,7 +3,9 @@
 
 #include "XGDLog.h"
 
-LogLevel XGDLog::current_level = Normal; // Set default level
+#ifndef ENABLE_GUI
+
+LogLevel XGDLog::current_level = Normal;
 
 void XGDLog::print_progress(uint64_t processed, uint64_t total) 
 {
@@ -47,9 +49,15 @@ void XGDLog::print_progress(uint64_t processed, uint64_t total)
     }
 }
 
-// void print_hex(const char* buffer, std::size_t size) {
-//     for (std::size_t i = 0; i < size; ++i) {
-//         std::cout << std::hex << std::setw(2) << std::setfill('0') << (static_cast<unsigned int>(buffer[i]) & 0xFF) << " ";
-//     }
-//     std::cout << std::dec << std::endl;
-// }
+#else // ENABLE_GUI
+
+#include "GUI/MainFrame.h"
+
+LogLevel XGDLog::current_level = None;
+
+void XGDLog::print_progress(uint64_t processed, uint64_t total) 
+{
+    MainFrame::update_progress_bar(processed, total);
+}
+
+#endif // ENABLE_GUI

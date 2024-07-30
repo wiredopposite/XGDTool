@@ -10,6 +10,8 @@ project(XGDTool)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+option(ENABLE_GUI "Enable GUI" ON)  # Set to OFF for CLI only
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif()
@@ -80,7 +82,17 @@ set(SRC
     ${SRC_DIR}/Formats/Xiso.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SRC})
+if (ENABLE_GUI)
+    list(APPEND SRC
+        ${SRC_DIR}/GUI/MainFrame.cpp
+        ${SRC_DIR}/GUI/MainFrame_Create.cpp
+        ${SRC_DIR}/GUI/MainFrame_Log.cpp
+    )
+    add_definitions(-DENABLE_GUI)
+    add_executable(${PROJECT_NAME} WIN32 ${SRC} resources/resource.rc)
+else()
+    add_executable(${PROJECT_NAME} ${SRC})
+endif()
 
 find_package(lz4 CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
@@ -88,6 +100,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
 find_package(OpenSSL CONFIG REQUIRED)
 find_package(CURL REQUIRED)
+find_package(wxWidgets CONFIG REQUIRED)
 
 if(MSVC)
     target_compile_options(zarchive PRIVATE /wd4244)
@@ -95,7 +108,10 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     zarchive
-    
+
+    wx::core 
+    wx::base
+
     lz4::lz4
     zstd::libzstd
     CLI11::CLI11

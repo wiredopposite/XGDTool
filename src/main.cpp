@@ -1,11 +1,13 @@
 #include <cstdint>
 #include <filesystem>
 
-#include <CLI/CLI.hpp>
-
 #include "XGD.h"
 #include "InputHelper/Types.h"
 #include "InputHelper/InputHelper.h" 
+
+#ifndef ENABLE_GUI
+
+#include <CLI/CLI.hpp>
 
 int main(int argc, char** argv)
 {
@@ -27,10 +29,10 @@ int main(int argc, char** argv)
     output_format_group->add_flag_function("--zar",      [&](int64_t) { output_settings.file_type = FileType::ZAR; }, "Creates a ZAR archive");
     output_format_group->add_flag_function("--xbe",      [&](int64_t) { output_settings.file_type = FileType::XBE; }, "Generates an attach XBE file");
 
-    output_format_group->add_flag_function("--ogxbox",   [&](int64_t) { auto_format = AutoFormat::OGXBOX;  }, "Automatically choose format and settings for use with OG Xbox");
-    output_format_group->add_flag_function("--xbox360",  [&](int64_t) { auto_format = AutoFormat::XBOX360; }, "Automatically choose format and settings for use with Xbox 360");
-    output_format_group->add_flag_function("--xemu",     [&](int64_t) { auto_format = AutoFormat::XEMU;    }, "Automatically choose format and settings for use with Xemu");
-    output_format_group->add_flag_function("--xenia",    [&](int64_t) { auto_format = AutoFormat::XENIA;   }, "Automatically choose format and settings for use with Xenia");
+    output_format_group->add_flag_function("--ogxbox",   [&](int64_t) { output_settings.auto_format = AutoFormat::OGXBOX;  }, "Automatically choose format and settings for use with OG Xbox");
+    output_format_group->add_flag_function("--xbox360",  [&](int64_t) { output_settings.auto_format = AutoFormat::XBOX360; }, "Automatically choose format and settings for use with Xbox 360");
+    output_format_group->add_flag_function("--xemu",     [&](int64_t) { output_settings.auto_format = AutoFormat::XEMU;    }, "Automatically choose format and settings for use with Xemu");
+    output_format_group->add_flag_function("--xenia",    [&](int64_t) { output_settings.auto_format = AutoFormat::XENIA;   }, "Automatically choose format and settings for use with Xenia");
 
     output_format_group->add_flag_function("--list",     [&](int64_t) { output_settings.file_type = FileType::LIST; }, "List file contents of input image");
     output_format_group->set_help_flag    ("--help",     "Print this help message and exit");
@@ -59,34 +61,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    switch (auto_format) 
-    {
-        case AutoFormat::OGXBOX:
-            output_settings.file_type = FileType::DIR;
-            output_settings.allowed_media_patch = true;
-            output_settings.rename_xbe = true;
-            break;
-        case AutoFormat::XBOX360:
-            output_settings.file_type = FileType::GoD;
-            output_settings.scrub_type = ScrubType::FULL;
-            break;
-        case AutoFormat::XEMU:
-            output_settings.file_type = FileType::ISO;
-            output_settings.scrub_type = ScrubType::FULL;
-            output_settings.attach_xbe = false;
-            output_settings.allowed_media_patch = false;
-            output_settings.split = false;
-            output_settings.xemu_paths = true;
-            break;
-        case AutoFormat::XENIA:
-            output_settings.file_type = FileType::ZAR;
-            break;
-        default:
-            break;
-    }
-
     InputHelper input_helper(std::filesystem::absolute(in_path), out_directory, output_settings);
-    input_helper.process();
+    input_helper.process_all();
 
     for (const auto& failed_input : input_helper.failed_inputs()) 
     {
@@ -97,3 +73,32 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+#else // ENABLE_GUI
+
+#include <wx/wx.h>
+
+#include "GUI/MainFrame.h"  
+
+class AppEntry : public wxApp
+{
+public:
+    AppEntry() {};
+    ~AppEntry() {};
+
+    virtual bool OnInit();
+
+private:
+    MainFrame* frame_{nullptr};
+};
+
+bool AppEntry::OnInit()
+{
+    frame_ = new MainFrame(XGD::NAME, wxPoint(50, 50), wxSize(800, 600));
+    frame_->Show();
+    return true;
+}
+
+wxIMPLEMENT_APP(AppEntry);
+
+#endif // ENABLE_GUI

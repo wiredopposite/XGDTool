@@ -6,14 +6,15 @@
 #include "XGDLog.h"
 #include "XGDException.h"
 
-#define XGDTOOL_VERSION   "1.0.0 (07.27.24)"
+#define XGDTOOL_VERSION   "1.0.0"
+#define XGDTOOL_DATE      "07.27.24"
 
 namespace XGD {
 
     constexpr char     NAME[]         = "XGDTool";
     constexpr char     VERSION[]      = XGDTOOL_VERSION;
 
-    constexpr char     OPTIMIZED_TAG[]       = "in!xgdt!" XGDTOOL_VERSION;
+    constexpr char     OPTIMIZED_TAG[]       = "in!xgdt!" XGDTOOL_VERSION " (" XGDTOOL_DATE ")";
     constexpr uint64_t OPTIMIZED_TAG_OFFSET  = 31337;
     constexpr uint64_t OPTIMIZED_TAG_LEN     = sizeof(OPTIMIZED_TAG) - 1;
 
