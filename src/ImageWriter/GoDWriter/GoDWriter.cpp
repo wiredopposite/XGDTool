@@ -224,6 +224,8 @@ void GoDWriter::write_file_from_reader(std::vector<std::unique_ptr<std::ofstream
         read_position += read_size;
         bytes_remaining -= read_size;
         current_write_sector++;
+
+        check_status_flags();
     }
 }
 
@@ -266,6 +268,8 @@ void GoDWriter::write_file_from_directory(std::vector<std::unique_ptr<std::ofstr
 
         bytes_remaining -= read_size;
         current_write_sector++;
+
+        check_status_flags();
     }
 
     in_file.close();
@@ -339,6 +343,8 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesy
         current_sector++;
 
         XGDLog().print_progress(prog_processed_++, prog_total_);
+
+        check_status_flags();
     }
 
     if (out_files.back()->tellp() % GoD::BLOCK_SIZE) 

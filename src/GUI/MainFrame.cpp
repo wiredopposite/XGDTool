@@ -1,16 +1,19 @@
+#include <chrono>
+
 #include "GUI/MainFrame.h"
 
 wxDEFINE_EVENT(wxEVT_UPDATE_CURRENT_PROGRESS, wxThreadEvent);
 wxDEFINE_EVENT(wxEVT_UPDATE_TOTAL_PROGRESS, wxThreadEvent);
 wxDEFINE_EVENT(wxEVT_THREAD_COMPLETED, wxThreadEvent);
+wxDEFINE_EVENT(wxEVT_UPDATE_CURRENT_STAGE, wxThreadEvent);
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
-    EVT_CLOSE(MainFrame::on_close)
     EVT_BUTTON(wxID_ANY, MainFrame::on_process_all)
     EVT_BUTTON(wxID_ANY, MainFrame::on_cancel_process)
     EVT_THREAD(wxEVT_UPDATE_CURRENT_PROGRESS, MainFrame::on_update_current_progress)
     EVT_THREAD(wxEVT_UPDATE_TOTAL_PROGRESS, MainFrame::on_update_total_progress)
     EVT_THREAD(wxEVT_THREAD_COMPLETED, MainFrame::on_thread_completed)
+    EVT_THREAD(wxEVT_UPDATE_CURRENT_STAGE, MainFrame::on_update_current_stage)
 wxEND_EVENT_TABLE()
 
 wxGauge* MainFrame::current_progress_bar_ = nullptr;
@@ -19,69 +22,80 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
     : wxFrame(nullptr, wxID_ANY, title, pos, size) 
 {
     create_frame();
-    set_button_states(false);
+    update_button_states();
+    update_controls_state();
 
     Bind(wxEVT_UPDATE_CURRENT_PROGRESS, &MainFrame::on_update_current_progress, this);
     Bind(wxEVT_UPDATE_TOTAL_PROGRESS, &MainFrame::on_update_total_progress, this);
     Bind(wxEVT_THREAD_COMPLETED, &MainFrame::on_thread_completed, this);
+    Bind(wxEVT_UPDATE_CURRENT_STAGE, &MainFrame::on_update_current_stage, this);
+}
+
+void MainFrame::stop_all_processing()
+{
+    if (current_status_ != Status::IDLE && input_helper_) 
+    {
+        input_helper_->cancel_processing();
+    }
+
+    if (processing_thread_ && processing_thread_->joinable())
+    {
+        processing_thread_->join();
+        processing_thread_.reset();
+    }
 }
 
 MainFrame::~MainFrame()
 {
-    terminate_processing_thread();
-}
-
-void MainFrame::on_close(wxCloseEvent& event)
-{
-    terminate_processing_thread();
-    event.Skip();
+    stop_all_processing();
 }
 
 void MainFrame::on_pause_process(wxCommandEvent& event)
 {
-    paused_processing_ = !paused_processing_;
-    process_buttons_.pause->SetLabel(paused_processing_ ? "Resume" : "Pause");
-    wxLogMessage(paused_processing_ ? "Processing will be paused after the current file is finished" : "Processing resumed");
-}
+    current_status_ = current_status_ == Status::PAUSED ? Status::PROCESSING : Status::PAUSED;
+    process_buttons_.pause->SetLabel(current_status_ == Status::PAUSED ? "Resume" : "Pause");
 
-void MainFrame::on_cancel_process(wxCommandEvent& event)
-{
-    cancel_processing_ = true;
-    wxLogMessage("Processing will be cancelled after the current file is finished");
-}
-
-void MainFrame::terminate_processing_thread()
-{
-    if (processing_thread_ && processing_thread_->joinable())
+    if (current_status_ == Status::PAUSED)
     {
-        cancel_processing_ = true;
-        processing_thread_->join();
-        processing_thread_.reset();
-    }
-    
-    currently_processing_ = false;
-}
+        stored_status_ = status_field_->GetLabel().ToStdString();
+        status_field_->SetLabel("Paused");
 
-void MainFrame::on_thread_completed(wxThreadEvent& event)
-{
-    terminate_processing_thread();
-
-    if (input_helper_->failed_inputs().size() > 0)
-    {
-        for (const auto& failed_input : input_helper_->failed_inputs())
+        if (input_helper_)
         {
-            wxLogMessage("Failed to process input: " + wxString(failed_input.string()));
+            input_helper_->pause_processing();
         }
     }
     else
     {
-        wxLogMessage("Finished processing input files");
+        if (status_field_->GetLabel().ToStdString() == "Paused") // status field was not updated by the processing thread
+        {
+            status_field_->SetLabel(stored_status_);
+        }
+
+        if (input_helper_)
+        {
+            input_helper_->resume_processing();
+        }
+    }
+}
+
+void MainFrame::on_cancel_process(wxCommandEvent& event)
+{
+    if (current_status_ == Status::PAUSED)
+    {
+        input_helper_->resume_processing();
+    }
+    else if (current_status_ != Status::PROCESSING)
+    {
+        return;
     }
 
-    set_button_states(currently_processing_);
-    update_current_progress_bar(100, 100);
-    total_progress_bar_->SetRange(1);
-    total_progress_bar_->SetValue(1);
+    current_status_ = Status::CANCELED;
+    
+    if (input_helper_)
+    {
+        input_helper_->cancel_processing();
+    }
 }
 
 void MainFrame::on_process_all(wxCommandEvent& event)
@@ -104,17 +118,17 @@ void MainFrame::on_process_all(wxCommandEvent& event)
     if (input_helper_->input_infos().empty())
     {
         wxLogMessage("No valid files found in the selected input path");
+        input_helper_.reset();
         return;
     }
+
+    status_field_->SetLabel("Processing input files");
 
     total_progress_bar_->SetRange(input_helper_->input_infos().size());
     total_progress_bar_->SetValue(0);
 
-    currently_processing_ = true;
-    paused_processing_ = false;
-    cancel_processing_ = false;
-
-    set_button_states(currently_processing_);
+    current_status_ = Status::PROCESSING;
+    update_button_states();
     
     processing_thread_ = std::make_unique<std::thread>(&MainFrame::process_files, this);
 }
@@ -132,20 +146,44 @@ void MainFrame::process_files()
         wxThreadEvent* total_progress_event = new wxThreadEvent(wxEVT_UPDATE_TOTAL_PROGRESS);
         total_progress_event->SetPayload(std::make_pair(progress, total));
         wxQueueEvent(this, total_progress_event);
-
-        while (paused_processing_)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        }
-
-        if (cancel_processing_)
-        {
-            break;
-        }
     }
 
     wxThreadEvent* thread_completed_event = new wxThreadEvent(wxEVT_THREAD_COMPLETED);
     wxQueueEvent(this, thread_completed_event);
+}
+
+void MainFrame::on_thread_completed(wxThreadEvent& event)
+{
+    if (processing_thread_ && processing_thread_->joinable())
+    {
+        processing_thread_->join();
+        processing_thread_.reset();
+    }
+
+    status_field_->SetLabel("Processing complete");
+
+    if (input_helper_->failed_inputs().size() > 0)
+    {
+        for (const auto& failed_input : input_helper_->failed_inputs())
+        {
+            wxLogMessage("Failed to process input: " + wxString(failed_input.string()));
+        }
+
+        if (current_status_ == Status::CANCELED)
+        {
+            status_field_->SetLabel("Processing cancelled");
+        }
+    }
+
+    current_status_ = Status::IDLE;
+
+    update_button_states();
+    update_current_progress_bar(100, 100);
+
+    total_progress_bar_->SetRange(1);
+    total_progress_bar_->SetValue(1);
+
+    input_helper_.reset();
 }
 
 void MainFrame::on_pick_input_path(wxCommandEvent& event)
@@ -154,10 +192,11 @@ void MainFrame::on_pick_input_path(wxCommandEvent& event)
     int choice = wxGetSingleChoiceIndex("Choose the type of selection:", "Select", 2, choices, this);
 
     file_list_->DeleteAllItems();
+    input_picker_.field->Clear();
     input_paths_.clear();
     input_helper_.reset();
 
-    if (choice == 0) // Select File(s)
+    if (choice == 0)
     {
         wxString wildcard = "Xbox image files (*.iso;*.cci;*.cso;*.zar;)|*.iso;*.cci;*.cso;*.zar;|All files (*.*)|*.*";
         wxFileDialog open_file_dialog(this, "Select file(s)", "", "", wildcard, wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
@@ -174,7 +213,7 @@ void MainFrame::on_pick_input_path(wxCommandEvent& event)
             }
         }
     }
-    else if (choice == 1) // Select Directory
+    else if (choice == 1)
     {
         wxDirDialog open_dir_dialog(this, "Select a directory", "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 
@@ -213,6 +252,7 @@ void MainFrame::on_pick_output_path(wxCommandEvent& event)
     if (open_dir_dialog.ShowModal() == wxID_OK)
     {
         wxString dir_path = open_dir_dialog.GetPath();
+        output_picker_.field->Clear();
         output_picker_.field->SetValue(dir_path);
         output_path_ = std::filesystem::path(dir_path.ToStdString());
     }
@@ -270,17 +310,40 @@ void MainFrame::on_update_total_progress(wxThreadEvent& event)
     }
 }
 
+void MainFrame::update_status_field(const std::string status)
+{
+    wxThreadEvent* event = new wxThreadEvent(wxEVT_UPDATE_CURRENT_STAGE);
+    event->SetPayload(status);
+    wxQueueEvent(wxTheApp->GetTopWindow(), event);
+}
+
+void MainFrame::on_update_current_stage(wxThreadEvent& event)
+{
+    auto data = event.GetPayload<std::string>();
+    status_field_->SetLabel(data);
+}
+
 std::string MainFrame::get_file_type_string(FileType type)
 {
-    for (const auto& pair : TYPE_STR_MAP)
+    switch (type)
     {
-        if (pair.type == type)
-        {
-            return pair.string;
-        }
+        case FileType::ISO:
+            return "ISO";
+        case FileType::GoD:
+            return "GoD";
+        case FileType::CCI:
+            return "CCI";
+        case FileType::CSO:
+            return "CSO";
+        case FileType::ZAR:
+            return "ZAR";
+        case FileType::DIR:
+            return "DIR";
+        case FileType::XBE:
+            return "XBE";
+        default:
+            return "UNKNOWN";
     }
-
-    return "UNKNOWN";
 }
 
 void MainFrame::update_controls_state()
@@ -323,14 +386,41 @@ void MainFrame::update_controls_state()
     }
 }
 
-void MainFrame::set_button_states(bool processing)
+void MainFrame::update_button_states()
 {
+    bool processing = current_status_ == Status::PROCESSING;
+    bool paused = current_status_ == Status::PAUSED;
+
+    process_buttons_.pause->SetLabel(!paused ? "Pause" : "Resume");
+
     process_buttons_.process->Enable(!processing);
-    process_buttons_.pause->Enable(processing);
-    process_buttons_.pause->SetLabel(!paused_processing_ ? "Pause" : "Resume");
+    process_buttons_.pause->Enable(processing);    
     process_buttons_.cancel->Enable(processing);
+    
     input_picker_.button->Enable(!processing);
     output_picker_.button->Enable(!processing);
+
+    out_format_rbs_.iso->Enable(!processing);
+    out_format_rbs_.god->Enable(!processing);
+    out_format_rbs_.cci->Enable(!processing);
+    out_format_rbs_.cso->Enable(!processing);
+    out_format_rbs_.zar->Enable(!processing);
+    out_format_rbs_.extract->Enable(!processing);
+
+    auto_format_rbs_.ogxbox->Enable(!processing);
+    auto_format_rbs_.xbox360->Enable(!processing);
+    auto_format_rbs_.xemu->Enable(!processing);
+    auto_format_rbs_.xenia->Enable(!processing);
+
+    out_scrub_rbs_.none->Enable(!processing);
+    out_scrub_rbs_.partial->Enable(!processing);
+    out_scrub_rbs_.full->Enable(!processing);
+
+    out_settings_cbs_.split->Enable(!processing);
+    out_settings_cbs_.attach_xbe->Enable(!processing);
+    out_settings_cbs_.allowed_media_xbe->Enable(!processing);
+    out_settings_cbs_.rename_xbe->Enable(!processing);
+    out_settings_cbs_.offline_mode->Enable(!processing);
 }
 
 OutputSettings MainFrame::parse_ui_settings()

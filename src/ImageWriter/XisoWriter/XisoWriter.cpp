@@ -80,6 +80,8 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
         }
 
         XGDLog().print_progress(i - sector_offset, end_sector - sector_offset - 1);
+
+        check_status_flags();
     }
 
     out_file.close();
@@ -216,6 +218,8 @@ void XisoWriter::write_file_from_reader(AvlTree::Node* node, split::ofstream* ou
         read_position += read_size;
 
         XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
+
+        check_status_flags();
     }
 
     if ((node->file_size + (node->start_sector * Xiso::SECTOR_SIZE)) != out_file->tellp()) 
@@ -267,6 +271,8 @@ void XisoWriter::write_file_from_directory(AvlTree::Node* node, split::ofstream*
         bytes_remaining -= read_size;
 
         XGDLog().print_progress(bytes_processed_ += read_size, total_bytes_);
+
+        check_status_flags();
     }
 
     in_file.close();

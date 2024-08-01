@@ -3,9 +3,22 @@
 
 #include "XGDLog.h"
 
+LogLevel XGDLog::current_level = Normal;
+
 #ifndef ENABLE_GUI
 
-LogLevel XGDLog::current_level = Normal;
+XGDLog& XGDLog::operator<<(Manip manip) 
+{
+    if (manip == Manip::Endl && should_log()) 
+    {
+        oss << std::endl;
+        
+        std::cerr << oss.str();
+        oss.str("");  // Clear the stream after flushing
+        oss.clear();
+    }
+    return *this;
+}
 
 void XGDLog::print_progress(uint64_t processed, uint64_t total) 
 {
@@ -53,11 +66,33 @@ void XGDLog::print_progress(uint64_t processed, uint64_t total)
 
 #include "GUI/MainFrame.h"
 
-LogLevel XGDLog::current_level = None;
-
 void XGDLog::print_progress(uint64_t processed, uint64_t total) 
 {
+    static auto last_update_time = std::chrono::steady_clock::now();
+
+    auto now = std::chrono::steady_clock::now();
+    auto duration_since_last_update = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update_time);
+
+    if (duration_since_last_update.count() < 100 && processed < total) 
+    {
+        return;
+    }
+
+    last_update_time = now;
+
     MainFrame::update_progress_bar(processed, total);
+}
+
+XGDLog& XGDLog::operator<<(Manip manip) 
+{
+    if (manip == Manip::Endl && should_log()) 
+    {
+        oss << std::endl;
+        MainFrame::update_status_field(oss.str());
+        oss.str(""); 
+        oss.clear();
+    }
+    return *this;
 }
 
 #endif // ENABLE_GUI

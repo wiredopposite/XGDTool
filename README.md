@@ -1,7 +1,7 @@
 # XGDTool
-XGDTool is a command line OG and 360 Xbox disc utility, capable of converting discs to and from any mainstream format.
+XGDTool is an OG and 360 Xbox disc utility, capable of converting discs to and from any mainstream format. It's available as a GUI or CLI app.
 
-This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better! Currently it's Windows only, but Linux and Mac support are planned.
+This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better! Currently it's Windows only, but Linux support is planned.
 
 ## Features
 - Supports convertion between following formats:
@@ -11,14 +11,18 @@ This program is still in initial testing. If you experience an issue, please rep
     - CCI
     - CSO
     - ZAR
-- Seamless conversion, you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, without writing any temporary files. The only format requiring temporary files is ZAR when provided as input.
-- Batch processing, a folder full of different game formats can be batch converted to a single format with one command line argument.
+- Seamless conversion, e.g. you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, without writing any temporary files. The only format requiring temporary files is ZAR when provided as input.
+- Image scrubbing ("Partial Scrub"), gets rid of random padding and trims the output file to the shortest length possible.
+- Image reauthoring ("Full Scrub"), completely rewrites the structure of the disc for the smallest possible output file.
+- Image authoring, takes your extracted files and creates a new image with them.
+- Multithreaded compression for CCI and CSO formats.
+- Batch processing, a folder full of different game formats can be batch converted to a single format.
 - Automatically finds split files when only one part is provided as an input path, assuming they're named in this format: ```name.1.extension``` ```name.2.extension```.
 - Option to select your target app/machine (Xemu, Xenia, OG Xbox, Xbox 360) and let XGDTool decide which settings to use.
 - Attach XBE generation for OG Xbox.
 - Online database lookup for accurate file naming (can be disabled).
 
-## Usage
+## CLI Usage
 ```XGDTool.exe <output_format> <settings_flags> <input_path> <output_directory>```
 
 Settings flags and output directory are optional.
@@ -52,16 +56,6 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--offline```        Disables online functionality.
 - ```--debug```          Enable debug logging.
 - ```--quiet```          Disable all logging except for warnings and errors.
-
-### Example arguments
-Produces a scrubbed CCI image and attach Xbe ready for use with OG Xbox:<br>
-```XGDLog.exe --cci --partial-scrub --attach-xbe "input_file.iso" "output/directory"```
-
-Produces a GoD image ready for use with Xbox 360:<br>
-```XGDLog.exe --god "input/xex_directory" "output/directory"```
-
-Produces a ZAR archive ready for use with Xenia:<br>
-```XGDLog.exe --zar "input_file.iso" "output/directory"```
 
 ## Build
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 

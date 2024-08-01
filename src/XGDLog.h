@@ -37,32 +37,11 @@ public:
         return *this;
     }
 
-    XGDLog& operator<<(Manip manip) 
-    {
-        if (manip == Manip::Endl && should_log()) 
-        {
-            oss << std::endl;
-            std::cerr << oss.str();
-            oss.str("");  // Clear the stream after flushing
-            oss.clear();
-        }
-        return *this;
-    }
+    XGDLog& operator<<(Manip manip);
 
-    void set_log_level(LogLevel level) 
-    {
-        current_level = level;
-    }
-
-    bool should_log() const 
-    {
-        return current_level >= log_level;
-    }
-
-    LogLevel get_log_level() const 
-    {
-        return current_level;
-    }
+    void set_log_level(LogLevel level) { current_level = level; }
+    bool should_log() const { return current_level >= log_level; }
+    LogLevel get_log_level() const { return current_level; }
 
     void print_progress(uint64_t processed, uint64_t total);
 

@@ -19,6 +19,7 @@ const XGDException::ErrorMap XGDException::error_map[] = {
     { Code::XEX_INVALID,  "Invalid XEX error" },
     { Code::STR_ENCODING, "String encoding error" },
     { Code::MISC,         "Miscellaneous error" },
+    { Code::CANCELLED,    "Operation canceled" },
     { Code::UNK,          "Unknown error" }
 };
 

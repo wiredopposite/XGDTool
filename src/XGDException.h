@@ -32,6 +32,7 @@ public:
         XEX_INVALID,
         STR_ENCODING,
         MISC,
+        CANCELLED,
         UNK
     };
 

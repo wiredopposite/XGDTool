@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "XGD.h"
 #include "ZARExtractor/ZARExtractor.h"
 
@@ -149,6 +151,8 @@ bool ZARExtractor::extract_file(ZArchiveReader* reader, std::string_view src_pat
         read_offset += bytes_read;
 
         XGDLog().print_progress(prog_processed_ += bytes_read, prog_total_);
+
+        check_status_flags();
     }
 
     if (read_offset != reader->GetFileSize(file_handle))
@@ -157,4 +161,17 @@ bool ZARExtractor::extract_file(ZArchiveReader* reader, std::string_view src_pat
     }
 
     return true;
+}
+
+void ZARExtractor::check_status_flags()
+{
+    if (write_cancel_flag_)
+    {
+        throw XGDException(ErrCode::CANCELLED, HERE(), "Extraction cancelled");
+    }
+
+    while (write_pause_flag_)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }

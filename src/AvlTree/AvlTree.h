@@ -71,7 +71,7 @@ public:
     uint64_t out_iso_size();
     
 private:
-    enum class Result { BALANCED, NO_ERROR, ERROR };
+    enum class Result { Balanced, No_Error, Error };
 
     struct AssignOffsetsContext {
         uint64_t directory_start;
@@ -137,6 +137,8 @@ void AvlTree::traverse(Node* root, TraversalMethod method, const TraversalCallba
     }
 }
 
+#endif // _AVLTREE_H_
+
 /*  The AVL tree is constructed by creating a separate tree for each directory within the root directory,
     each separate tree's root node is assigned to it's parent directory node's subdirectory pointer.
     "Child" nodes are actually sibling file/dirs of their "parent" node within the same directory.
@@ -178,5 +180,3 @@ void AvlTree::traverse(Node* root, TraversalMethod method, const TraversalCallba
                                 /            \
                         child(file4)       child(file5)
 */
-
-#endif // _AVLTREE_H_

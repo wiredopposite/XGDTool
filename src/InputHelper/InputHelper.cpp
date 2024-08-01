@@ -1,9 +1,6 @@
 #include "ImageReader/ImageReader.h"
-#include "ImageWriter/ImageWriter.h"
-#include "ImageExtractor/ImageExtractor.h"    
 #include "InputHelper/InputHelper.h"
 #include "Executable/AttachXbeTool.h"
-#include "ZARExtractor/ZARExtractor.h"
 
 InputHelper::InputHelper(std::filesystem::path in_path, std::filesystem::path out_directory, OutputSettings output_settings)
     :   output_directory_(out_directory), 
@@ -88,45 +85,7 @@ void InputHelper::process_all()
 
     for (auto& input_info : input_infos_) 
     {
-        try 
-        {
-            XGDLog() << "Processing: " << input_info.paths.front().string() + ((input_info.paths.size() > 1) ? (" and " + input_info.paths.back().string()) : "") << "\n";
-            
-            std::vector<std::filesystem::path> out_paths;
-
-            switch (output_settings_.file_type) 
-            {
-                case FileType::UNKNOWN:
-                    throw XGDException(ErrCode::ISO_INVALID, HERE(), "Unknown output file type");
-                case FileType::DIR:
-                    out_paths = create_dir(input_info);
-                    break;
-                case FileType::XBE:
-                    out_paths = create_attach_xbe(input_info);
-                    break;
-                case FileType::LIST:
-                    list_files(input_info);
-                    break;
-                default:
-                    out_paths = create_image(input_info);
-                    break;
-            } 
-
-            if (!out_paths.empty())
-            {
-                XGDLog() << "Successfully created: " << out_paths.front().string() + ((out_paths.size() > 1) ? (" and " + out_paths.back().string()) : "") << "\n";
-            }
-        } 
-        catch (const XGDException& e) 
-        {
-            failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
-            XGDLog(Error) << e.what() << "\n";
-        }
-        catch (const std::exception& e) 
-        {
-            failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
-            XGDLog(Error) << e.what() << "\n";
-        }
+        process_single(input_info);
     }
 }
 
@@ -163,11 +122,13 @@ void InputHelper::process_single(InputInfo input_info)
     } 
     catch (const XGDException& e) 
     {
+        reset_processor();
         failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
         XGDLog(Error) << e.what() << "\n";
     }
     catch (const std::exception& e) 
     {
+        reset_processor();
         failed_inputs_.insert(failed_inputs_.end(), input_info.paths.begin(), input_info.paths.end());
         XGDLog(Error) << e.what() << "\n";
     }
@@ -204,19 +165,19 @@ std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_in
 
     std::filesystem::path out_path = get_output_path(output_directory_, *title_helper);
 
-    std::unique_ptr<ImageWriter> image_writer;
-
     switch (input_info.file_type) 
     {
         case FileType::DIR:
-            image_writer = ImageWriter::create_instance(input_info.paths.front(), *title_helper, output_settings_);
+            image_writer_ = ImageWriter::create_instance(input_info.paths.front(), *title_helper, output_settings_);
             break;
         default:
-            image_writer = ImageWriter::create_instance(image_reader, *title_helper, output_settings_);
+            image_writer_ = ImageWriter::create_instance(image_reader, *title_helper, output_settings_);
             break;
     }
 
-    std::vector<std::filesystem::path> final_out_paths = image_writer->convert(out_path);
+    std::vector<std::filesystem::path> final_out_paths = image_writer_->convert(out_path);
+    
+    reset_processor();
 
     if (!temp_path.empty()) 
     {
@@ -251,8 +212,9 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
     }
     else if (input_info.file_type == FileType::ZAR)
     {
-        ZARExtractor zar_extractor(input_info.paths.front());
-        zar_extractor.extract(output_directory_ / input_info.paths.front().stem());
+        zar_extractor_ = std::make_unique<ZARExtractor>(input_info.paths.front());
+        zar_extractor_->extract(output_directory_ / input_info.paths.front().stem());
+        reset_processor();
         return { output_directory_ / input_info.paths.front().stem() };
     }
 
@@ -262,8 +224,9 @@ std::vector<std::filesystem::path> InputHelper::create_dir(const InputInfo& inpu
 
     std::filesystem::path out_path = get_output_path(output_directory_, title_helper);
 
-    ImageExtractor image_extractor(*image_reader, title_helper, output_settings_.allowed_media_patch, output_settings_.rename_xbe);
-    image_extractor.extract(out_path);
+    image_extractor_ = std::make_unique<ImageExtractor>(*image_reader, title_helper, output_settings_.allowed_media_patch, output_settings_.rename_xbe);
+    image_extractor_->extract(out_path);
+    reset_processor();
 
     return { out_path };
 }
@@ -338,4 +301,68 @@ std::filesystem::path InputHelper::extract_temp_zar(const std::filesystem::path&
     zar_extractor.extract(temp_path);
 
     return temp_path;
+}
+
+void InputHelper::cancel_processing() 
+{
+    if (image_writer_) 
+    {
+        image_writer_->cancel_processing();
+    }
+    if (image_extractor_) 
+    {
+        image_extractor_->cancel_processing();
+    }
+    if (zar_extractor_) 
+    {
+        zar_extractor_->cancel_processing();
+    }
+}
+
+void InputHelper::pause_processing() 
+{
+    if (image_writer_) 
+    {
+        image_writer_->pause_processing();
+    }
+    if (image_extractor_) 
+    {
+        image_extractor_->pause_processing();
+    }
+    if (zar_extractor_) 
+    {
+        zar_extractor_->pause_processing();
+    }
+}
+
+void InputHelper::resume_processing() 
+{
+    if (image_writer_) 
+    {
+        image_writer_->resume_processing();
+    }
+    if (image_extractor_) 
+    {
+        image_extractor_->resume_processing();
+    }
+    if (zar_extractor_) 
+    {
+        zar_extractor_->resume_processing();
+    }
+}
+
+void InputHelper::reset_processor() 
+{
+    if (image_writer_) 
+    {
+        image_writer_.reset();
+    }
+    if (image_extractor_) 
+    {
+        image_extractor_.reset();
+    }
+    if (zar_extractor_) 
+    {
+        zar_extractor_.reset();
+    }
 }

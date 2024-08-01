@@ -1,3 +1,5 @@
+#include <thread>
+
 #include "Executable/ExeTool.h"
 #include "Utils/StringUtils.h"
 #include "ImageExtractor/ImageExtractor.h"
@@ -89,6 +91,8 @@ void ImageExtractor::extract_file(const Xiso::DirectoryEntry& dir_entry)
         read_position += read_size;
 
         XGDLog().print_progress(prog_processed_ += read_size, prog_total_);
+
+        check_status_flags();
     }
 
     out_file.close();
@@ -143,11 +147,6 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
 
             std::memcpy(cert_buffer.data() + cert_offset_in_sector, &xbe_cert, sizeof(Xbe::Cert));
 
-            // XGDLog(Debug)   << "Patching XBE cert at offset: " << cert_sector * Xiso::SECTOR_SIZE + cert_offset_in_sector 
-            //                 << "\nCalculated Offset: " 
-            //                 << image_reader_.image_offset() + (dir_entry.header.start_sector * Xiso::SECTOR_SIZE) + exe_tool.cert_offset() 
-            //                 << XGDLog::Endl;
-
             out_file.write(cert_buffer.data(), write_size);
             if (out_file.fail())
             {
@@ -157,6 +156,8 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
             bytes_remaining -= write_size;
 
             XGDLog().print_progress(prog_processed_ += write_size, prog_total_);
+
+            check_status_flags();
 
             continue;
         } 
@@ -175,7 +176,22 @@ void ImageExtractor::extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entr
         current_sector++;
 
         XGDLog().print_progress(prog_processed_ += write_size, prog_total_);
+
+        check_status_flags();
     }
 
     out_file.close();
+}
+
+void ImageExtractor::check_status_flags() 
+{
+    if (write_cancel_flag_) 
+    {
+        throw XGDException(ErrCode::CANCELLED, HERE(), "Processing cancelled");
+    }
+
+    while (write_pause_flag_) 
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
 }

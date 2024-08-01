@@ -19,26 +19,10 @@
 #include "InputHelper/Types.h"
 #include "InputHelper/InputHelper.h"
 
-struct TypeStringPair
-{
-    FileType type;
-    std::string string;
-};
-
-static const std::vector<TypeStringPair> TYPE_STR_MAP = 
-{
-    { FileType::ISO, "ISO" },
-    { FileType::GoD, "GoD" },
-    { FileType::CCI, "CCI" },
-    { FileType::CSO, "CSO" },
-    { FileType::ZAR, "ZAR" },
-    { FileType::DIR, "DIR" },
-    { FileType::XBE, "XBE" },
-};
-
 wxDECLARE_EVENT(wxEVT_UPDATE_CURRENT_PROGRESS, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_UPDATE_TOTAL_PROGRESS, wxThreadEvent);
 wxDECLARE_EVENT(wxEVT_THREAD_COMPLETED, wxThreadEvent);
+wxDECLARE_EVENT(wxEVT_UPDATE_CURRENT_STAGE, wxThreadEvent);
 
 class MainFrame : public wxFrame
 {
@@ -47,8 +31,11 @@ public:
     ~MainFrame();
 
     static void update_progress_bar(uint64_t current, uint64_t total);
+    static void update_status_field(const std::string status);
 
 private:
+    enum class Status { IDLE, PROCESSING, PAUSED, CANCELED };
+
     struct Picker
     {
         wxTextCtrl* field{nullptr};
@@ -96,11 +83,8 @@ private:
         wxButton* cancel{nullptr};
     };
 
+    std::atomic<Status> current_status_{Status::IDLE};
     std::unique_ptr<std::thread> processing_thread_{nullptr};
-    std::atomic<bool> cancel_processing_{false};
-    std::atomic<bool> paused_processing_{false};
-    std::atomic<bool> currently_processing_{false};
-
     std::unique_ptr<InputHelper> input_helper_{nullptr};
     std::vector<std::filesystem::path> input_paths_;
     std::filesystem::path output_path_;
@@ -109,6 +93,9 @@ private:
     Picker output_picker_;
 
     wxListCtrl* file_list_{nullptr};
+
+    wxTextCtrl* status_field_{nullptr};
+    std::string stored_status_;
 
     OutFormatRadioButtons out_format_rbs_;
     AutoFormatRadioButtons auto_format_rbs_;
@@ -126,15 +113,15 @@ private:
     void on_cancel_process(wxCommandEvent& event);
     void on_update_current_progress(wxThreadEvent& event);
     void on_update_total_progress(wxThreadEvent& event);
-    void on_close(wxCloseEvent& event);
     void on_thread_completed(wxThreadEvent& event);
+    void on_update_current_stage(wxThreadEvent& event);
 
     void update_current_progress_bar(uint64_t progress, uint64_t total);
     void process_files();
-    void terminate_processing_thread();
     void update_controls_state();
-    void set_button_states(bool processing);
+    void update_button_states();
     OutputSettings parse_ui_settings();
+    void stop_all_processing();
 
     void create_frame();
     wxBoxSizer* create_out_format_radio_box(wxPanel* panel);

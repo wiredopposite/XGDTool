@@ -33,7 +33,7 @@ AvlTree::Result AvlTree::insert_node(Node** root_node, Node* node)
     if (*root_node == nullptr) 
     {
         *root_node = node;
-        return Result::BALANCED;
+        return Result::Balanced;
     }
 
     int key_result = compare_key(node->filename, (*root_node)->filename);
@@ -41,14 +41,14 @@ AvlTree::Result AvlTree::insert_node(Node** root_node, Node* node)
     if (key_result < 0) 
     {
         Result avl_result = insert_node(&(*root_node)->left_child, node);
-        return (avl_result == Result::BALANCED) ? left_grown(root_node) : avl_result;
+        return (avl_result == Result::Balanced) ? left_grown(root_node) : avl_result;
     }
     if (key_result > 0) 
     {
         Result avl_result = insert_node(&(*root_node)->right_child, node);
-        return (avl_result == Result::BALANCED) ? right_grown(root_node) : avl_result;
+        return (avl_result == Result::Balanced) ? right_grown(root_node) : avl_result;
     }
-    return Result::ERROR;
+    return Result::Error;
 }
 
 AvlTree::Result AvlTree::left_grown(Node** node) 
@@ -82,13 +82,13 @@ AvlTree::Result AvlTree::left_grown(Node** node)
                 rotate_left(&(*node)->left_child);
                 rotate_right(node);
             }
-            return Result::NO_ERROR;
+            return Result::No_Error;
         case Skew::RIGHT:
             (*node)->skew = Skew::NONE;
-            return Result::NO_ERROR;
+            return Result::No_Error;
         default:
             (*node)->skew = Skew::LEFT;
-            return Result::BALANCED;
+            return Result::Balanced;
     }
 }
 
@@ -98,7 +98,7 @@ AvlTree::Result AvlTree::right_grown(Node** node)
     {
         case Skew::LEFT:
             (*node)->skew = Skew::NONE;
-            return Result::NO_ERROR;
+            return Result::No_Error;
         case Skew::RIGHT:
             if ((*node)->right_child->skew == Skew::RIGHT) 
             {
@@ -126,10 +126,10 @@ AvlTree::Result AvlTree::right_grown(Node** node)
                 rotate_right(&(*node)->right_child);
                 rotate_left(node);
             }
-            return Result::NO_ERROR;
+            return Result::No_Error;
         default:
             (*node)->skew = Skew::RIGHT;
-            return Result::BALANCED;
+            return Result::Balanced;
     }
 }
 

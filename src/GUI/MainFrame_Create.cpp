@@ -34,9 +34,12 @@ void MainFrame::create_frame()
     wxBoxSizer* progress_lables_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText* current_progress_label = new wxStaticText(panel, wxID_ANY, "Current Progress:");
     wxStaticText* total_progress_label = new wxStaticText(panel, wxID_ANY, "Total Progress:");
+    wxStaticText* status_label = new wxStaticText(panel, wxID_ANY, "Status:");
 
+    progress_lables_sizer->Add(status_label, 0, wxALIGN_RIGHT);
+    progress_lables_sizer->AddSpacer(18);
     progress_lables_sizer->Add(current_progress_label, 0, wxALIGN_RIGHT);
-    progress_lables_sizer->AddSpacer(20);
+    progress_lables_sizer->AddSpacer(18);
     progress_lables_sizer->Add(total_progress_label, 0, wxALIGN_RIGHT);
     progress_lables_sizer->AddSpacer(4);
 
@@ -52,10 +55,17 @@ void MainFrame::create_frame()
     settings_sizer->AddSpacer(80);
     settings_sizer->Add(create_out_settings_check_box(panel), 0, wxEXPAND);
 
+    settings_progress_bar_sizer->Add(settings_sizer, 0, wxEXPAND);
+    settings_progress_bar_sizer->AddSpacer(10);
+
     current_progress_bar_ = new wxGauge(panel, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, 25));
     total_progress_bar_ = new wxGauge(panel, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, 25));
 
-    settings_progress_bar_sizer->Add(settings_sizer, 0, wxEXPAND);
+    status_field_ = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+    status_field_->SetBackgroundStyle(wxBG_STYLE_ERASE);
+    status_field_->SetLabel("Idle");
+
+    settings_progress_bar_sizer->Add(status_field_, 0, wxEXPAND);
     settings_progress_bar_sizer->AddSpacer(10);
     settings_progress_bar_sizer->Add(current_progress_bar_, 0, wxEXPAND);
     settings_progress_bar_sizer->AddSpacer(10);
@@ -63,11 +73,11 @@ void MainFrame::create_frame()
 
     bottom_sizer->Add(settings_progress_bar_sizer, 1, wxEXPAND);
     bottom_sizer->AddSpacer(10);
+
     bottom_sizer->Add(create_process_buttons_box(panel), 0, wxALIGN_BOTTOM);
 
     fg_sizer->Add(bottom_sizer, 10, wxEXPAND);
     fg_sizer->AddSpacer(10);
-
     fg_sizer->Add(create_info_box(panel), 11, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
 
     main_sizer->Add(fg_sizer, 1, wxALL | wxEXPAND, 10);

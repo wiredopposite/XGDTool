@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <atomic>
 
 #include "SplitFStream/SplitFStream.h"
 
@@ -18,8 +19,14 @@ public:
     ~ImageExtractor() = default;
 
     void extract(const std::filesystem::path& out_dir_path);
+    void cancel_processing() { write_cancel_flag_ = true; }
+    void pause_processing() { write_pause_flag_ = true; }
+    void resume_processing() { write_pause_flag_ = false; }
 
 private:
+    std::atomic<bool> write_cancel_flag_{false};
+    std::atomic<bool> write_pause_flag_{false};
+
     ImageReader& image_reader_;  
     TitleHelper& title_helper_;
 
@@ -31,6 +38,7 @@ private:
 
     void extract_file(const Xiso::DirectoryEntry& dir_entry);
     void extract_file_xbe_patch(const Xiso::DirectoryEntry& dir_entry);
+    void check_status_flags();
 };
 
 #endif // _IMAGE_EXTRACTOR_H_

@@ -127,3 +127,16 @@ uint32_t ImageWriter::num_sectors(const uint64_t num_bytes)
 {
     return static_cast<uint32_t>(num_bytes / Xiso::SECTOR_SIZE) + ((num_bytes % Xiso::SECTOR_SIZE) ? 1 : 0);
 }
+
+void ImageWriter::check_status_flags()
+{
+    if (write_cancel_flag_) 
+    {
+        throw XGDException(ErrCode::CANCELLED, HERE(), "Processing cancelled");
+    }
+
+    while (write_pause_flag_) 
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+}

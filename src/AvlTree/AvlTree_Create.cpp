@@ -42,7 +42,7 @@ void AvlTree::generate_from_filesystem(const std::filesystem::path& in_directory
             continue;
         }
 
-        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) 
+        if (insert_node(dir_node, current_node) == AvlTree::Result::Error) 
         {
             throw XGDException(ErrCode::AVL_INSERT, HERE(), entry_path.string());
         }
@@ -102,7 +102,7 @@ void AvlTree::generate_from_directory_entries(std::vector<Xiso::DirectoryEntry>&
             continue;
         }
 
-        if (insert_node(dir_node, current_node) == AvlTree::Result::ERROR) 
+        if (insert_node(dir_node, current_node) == AvlTree::Result::Error) 
         {
             throw XGDException(ErrCode::AVL_INSERT, HERE(), "Entry path: " + it->path.string() + " Filename: " + current_node->filename);
         }

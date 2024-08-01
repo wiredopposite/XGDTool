@@ -114,6 +114,8 @@ void ZARWriter::convert_from_dir(const std::filesystem::path& out_zar_path)
                 bytes_remaining -= read_size;
 
                 XGDLog().print_progress(prog_processed += read_size, prog_total);
+
+                check_status_flags();
             }
 
             in_file.close();
@@ -175,6 +177,8 @@ void ZARWriter::convert_from_iso(const std::filesystem::path& out_zar_path)
                 bytes_remaining -= read_size;
 
                 XGDLog().print_progress(prog_processed += read_size, prog_total);
+
+                check_status_flags();
             }
         }
     }
