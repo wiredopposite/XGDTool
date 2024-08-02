@@ -66,7 +66,7 @@ The vcpkg toolchain file is linked in CMakeLists.txt already so you don't need t
 Some other dependancies (attach XBE and OG Xbox title database) are downloaded from github automatically as well, then converted to C headers. All this is done just by configuring or building the project with CMake. Review the CmakeLists.txt and .cmake files in the cmake directory to see what's going on.
 
 ### Linux
-This has only been tested with Clang and is still being tested, you'll need to install some dependancies:
+This has only been tested with Clang and is still being worked on, you'll need to install some dependancies:
 ```
 # Update package lists and install deps
 sudo apt update
