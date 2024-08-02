@@ -159,7 +159,6 @@ elseif(UNIX)
     include_directories(${LZ4_INCLUDE_DIRS} ${ZSTD_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${CURL_INCLUDE_DIRS} ${wxWidgets_INCLUDE_DIRS})
     link_directories(${LZ4_LIBRARY_DIRS} ${ZSTD_LIBRARY_DIRS} ${OPENSSL_LIBRARIES} ${CURL_LIBRARIES} ${wxWidgets_LIBRARY_DIRS})
 
-    # Use wx-config to get the necessary flags
     execute_process(
         COMMAND wx-config --cxxflags
         OUTPUT_VARIABLE wxWidgets_CXX_FLAGS
@@ -175,6 +174,8 @@ elseif(UNIX)
     set(LIBS ${LIBS} ${wxWidgets_LIBS})
 
     target_link_libraries(${PROJECT_NAME} PRIVATE zarchive ${LZ4_LIBRARIES} ${ZSTD_LIBRARIES} ${OPENSSL_LIBRARIES} ${CURL_LIBRARIES} ${LIBS})
+
+    include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS}) # Suppress some warnings come from wxWidgets
 
 else()
 
