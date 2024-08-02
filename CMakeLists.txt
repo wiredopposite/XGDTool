@@ -151,11 +151,13 @@ elseif(UNIX)
     file(MAKE_DIRECTORY ${CLI11_DIR})
 
     if(NOT EXISTS ${JSON_HPP_PATH})
+        message(STATUS "Downloading json.hpp")
         file(DOWNLOAD ${JSON_HPP_URL} ${JSON_HPP_PATH})
     endif()
 
     if(NOT EXISTS ${CLI11_HEADER})
-        file(DOWNLOAD ${CLI11_URL} ${CLI11_HEADER} SHOW_PROGRESS)
+        message(STATUS "Downloading CLI11.hpp")
+        file(DOWNLOAD ${CLI11_URL} ${CLI11_HEADER})
     endif()
 
     find_package(PkgConfig REQUIRED)
