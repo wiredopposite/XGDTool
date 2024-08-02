@@ -65,9 +65,26 @@ These arguments can be stacked, though not all output formats will use them, in 
 By default this compiles as a GUI, configure cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.
 
 ### Windows
-If you have Ninja, Make, and MSVC installed and accessable in your environment's path, things should be fairly simple. CMake has been setup so that it will automatically download and build all dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
+If you have Cmake, MSVC, and ninja (I believe vcpkg needs this) installed, things should be fairly simple. CMake has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory, just by configuring the project. This can take a while but only has to happen once.
 
+Clone this repo and make a build directory
 
+```
+git clone --recursive https://github.com/wiredopposite/XGDTool.git
+cd XGDTool
+mkdir build
+cd build
+```
+
+Configure as GUI: 
+```cmake -S .. -B . -G "Visual Studio 17 2022" -A x64``` 
+or as CLI: 
+```cmake -S .. -B . -DENABLE_GUI=OFF -G "Visual Studio 17 2022" -A x64```
+
+Build
+```
+cmake --build . --config Release
+```
 
 ### Linux
 This has only been tested with Clang and is still being worked on, in addition to Clang, Make, and Cmake, you'll need to install some other dependancies:
@@ -82,14 +99,8 @@ cd XGDTool
 mkdir build
 cd build
 ```
-Configure as GUI:
-```
-cmake ..
-```
-or as CLI:
-```
-cmake -DENABLE_GUI=OFF ..
-```
+Configure as GUI: ```cmake ..``` or as CLI: ```cmake -DENABLE_GUI=OFF ..```
+
 Build
 ```
 make
