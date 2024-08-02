@@ -1,4 +1,5 @@
 #include <functional>
+#include <cstring>
 
 #include <lz4hc.h>
 

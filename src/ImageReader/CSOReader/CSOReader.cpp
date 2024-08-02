@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "ImageReader/CSOReader/CSOReader.h"
 
 CSOReader::CSOReader(const std::vector<std::filesystem::path>& in_cso_paths)

@@ -1,3 +1,4 @@
+#include <cstring>
 #include <thread>
 
 #include "Executable/ExeTool.h"

@@ -2,9 +2,11 @@
 
 void MainFrame::create_frame()
 {
-    wxIcon icon;
-    icon.LoadFile("IDI_APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
-    SetIcon(icon);
+    #ifdef WIN32
+        wxIcon icon;
+        icon.LoadFile("IDI_APP_ICON", wxBITMAP_TYPE_ICO_RESOURCE);
+        SetIcon(icon);
+    #endif
 
     wxPanel* panel = new wxPanel(this, wxID_ANY);
 

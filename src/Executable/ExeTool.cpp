@@ -1,4 +1,5 @@
 #include <fstream>
+#include <cstring>
 
 #include "XGD.h"
 #include "Utils/EndianUtils.h"

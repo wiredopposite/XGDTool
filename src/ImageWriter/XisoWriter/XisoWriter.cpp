@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 
 #include "ImageWriter/XisoWriter/XisoWriter.h"
 #include "AvlTree/AvlTree.h"

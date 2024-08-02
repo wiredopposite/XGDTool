@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "ImageReader/XisoReader/XisoReader.h"
 #include "ImageReader/CCIReader/CCIReader.h"
 #include "ImageReader/GoDReader/GoDReader.h"

@@ -25,24 +25,57 @@ namespace Xex {
 	};
 	static_assert(sizeof(DirectoryEntry) == 8, "Xex::DirectoryEntry");
 
+	// struct ExecutionInfo {
+	// 	uint32_t media_id;
+	// 	union {
+	// 		uint32_t version;
+	// 		struct {
+	// 			uint32_t major   : 4;
+	// 			uint32_t minor   : 4;
+	// 			uint32_t build   : 16;
+	// 			uint32_t qfe     : 8;
+	// 		};
+	// 	};
+	// 	union {
+	// 		uint32_t base_version;
+	// 		struct {
+	// 			uint32_t major   : 4;
+	// 			uint32_t minor   : 4;
+	// 			uint32_t build   : 16;
+	// 			uint32_t qfe     : 8;
+	// 		};
+	// 	};
+	// 	union {
+	// 		uint32_t title_id;
+	// 		struct {
+	// 			uint16_t publisher_id;
+	// 			uint16_t game_id;
+	// 		};
+	// 	};
+	// 	uint8_t platform;
+	// 	uint8_t executable_type;
+	// 	uint8_t disc_number;
+	// 	uint8_t disc_count;
+	// 	uint32_t savegame_id;
+	// };
 	struct ExecutionInfo {
 		uint32_t media_id;
 		union {
 			uint32_t version;
 			struct {
-				uint32_t major   : 4;
-				uint32_t minor   : 4;
-				uint32_t build   : 16;
-				uint32_t qfe     : 8;
+				uint32_t version_major   : 4;
+				uint32_t version_minor   : 4;
+				uint32_t version_build   : 16;
+				uint32_t version_qfe     : 8;
 			};
 		};
 		union {
 			uint32_t base_version;
 			struct {
-				uint32_t major   : 4;
-				uint32_t minor   : 4;
-				uint32_t build   : 16;
-				uint32_t qfe     : 8;
+				uint32_t base_major   : 4;
+				uint32_t base_minor   : 4;
+				uint32_t base_build   : 16;
+				uint32_t base_qfe     : 8;
 			};
 		};
 		union {

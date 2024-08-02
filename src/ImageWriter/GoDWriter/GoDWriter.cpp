@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cstring>
 
 #include "Utils/EndianUtils.h"
 #include "Utils/StringUtils.h"

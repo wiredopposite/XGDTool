@@ -8,6 +8,10 @@
 #include "Utils/StringUtils.h"
 #include "TitleHelper/TitleHelper.h"
 
+#ifndef min
+    #define min(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
 TitleHelper::TitleHelper(std::shared_ptr<ImageReader> image_reader, bool offline_mode) 
     : offline_mode_(offline_mode), image_reader_(image_reader) 
 {
@@ -427,7 +431,10 @@ void TitleHelper::write_little_endian(std::ostream& os, T value)
     for (size_t i = 0; i < sizeof(T); ++i) 
     {
         os.put(static_cast<char>(value & 0xFF));
-        value >>= 8;
+        if (sizeof(T) > 1) 
+        {
+            value >>= 8;
+        }
     }
 }
 
