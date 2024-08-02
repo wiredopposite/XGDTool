@@ -88,8 +88,14 @@ if (ENABLE_GUI)
         ${SRC_DIR}/GUI/MainFrame_Create.cpp
         ${SRC_DIR}/GUI/MainFrame_Log.cpp
     )
+
     add_definitions(-DENABLE_GUI)
-    add_executable(${PROJECT_NAME} WIN32 ${SRC} resources/resource.rc)
+
+    if (WIN32)
+        add_executable(${PROJECT_NAME} WIN32 ${SRC} resources/resource.rc)
+    elseif(UNIX)
+        add_executable(${PROJECT_NAME} ${SRC} resources/resource.rc)
+    endif()
 else()
     add_executable(${PROJECT_NAME} ${SRC})
 endif()
