@@ -58,14 +58,12 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--quiet```          Disable all logging except for warnings and errors.
 
 ## Build
-By default this compiles as a GUI, configure with ```cmake -DENABLE_GUI=OFF``` to compile for CLI.
+By default this compiles as a GUI, configure cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.
 
 ### Windows
-If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
+If you have Ninja, Make, and MSVC installed and accessable in your environment's path, things should be fairly simple. CMake has been setup so that it will automatically download and build all dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
 
-The vcpkg toolchain file is linked in CMakeLists.txt already so you don't need to mess with it unless you'd like to use your own. In that case, comment out the lines pertaining to vckg at the top of CMakeLists.txt and add your own package manager's toolchain file. XGDTool relies on several libraries: lz4, zstd, nlohmann_json, cli11, openssl, curl
 
-Some other dependancies (attach XBE and OG Xbox title database) are downloaded from github automatically as well, then converted to C headers. All this is done just by configuring or building the project with CMake. Review the CmakeLists.txt and .cmake files in the cmake directory to see what's going on.
 
 ### Linux
 This has only been tested with Clang and is still being worked on, in addition to Clang, Make, and Cmake, you'll need to install some other dependancies:
