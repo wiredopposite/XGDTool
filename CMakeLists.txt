@@ -12,7 +12,7 @@ project(XGDTool)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-option(ENABLE_GUI "Enable GUI" ON)  # Set to OFF for CLI only
+option(ENABLE_GUI "Enable GUI" OFF)  # Set to OFF for CLI only
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
@@ -140,10 +140,22 @@ if (WIN32)
 elseif(UNIX)
 
     set(JSON_HPP_URL "https://github.com/nlohmann/json/releases/download/v3.11.2/json.hpp")
-    set(JSON_HPP_PATH "${CMAKE_SOURCE_DIR}/external/nlohmann/json.hpp")
+    set(JSON_DIR "${CMAKE_SOURCE_DIR}/external/nlohmann")
+    set(JSON_HPP_PATH "${JSON_DIR}/json.hpp")
+
+    set(CLI11_URL "https://github.com/CLIUtils/CLI11/releases/download/v2.4.2/CLI11.hpp")
+    set(CLI11_DIR "${CMAKE_SOURCE_DIR}/external/CLI")
+    set(CLI11_HEADER "${CLI11_DIR}/CLI.hpp")
+
+    file(MAKE_DIRECTORY ${JSON_DIR})
+    file(MAKE_DIRECTORY ${CLI11_DIR})
 
     if(NOT EXISTS ${JSON_HPP_PATH})
         file(DOWNLOAD ${JSON_HPP_URL} ${JSON_HPP_PATH})
+    endif()
+
+    if(NOT EXISTS ${CLI11_HEADER})
+        file(DOWNLOAD ${CLI11_URL} ${CLI11_HEADER} SHOW_PROGRESS)
     endif()
 
     find_package(PkgConfig REQUIRED)
@@ -155,27 +167,45 @@ elseif(UNIX)
     find_package(CURL REQUIRED)
     find_package(wxWidgets REQUIRED COMPONENTS core base)
 
-    include_directories(${CMAKE_SOURCE_DIR}/external)
-    include_directories(${LZ4_INCLUDE_DIRS} ${ZSTD_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${CURL_INCLUDE_DIRS} ${wxWidgets_INCLUDE_DIRS})
-    link_directories(${LZ4_LIBRARY_DIRS} ${ZSTD_LIBRARY_DIRS} ${OPENSSL_LIBRARIES} ${CURL_LIBRARIES} ${wxWidgets_LIBRARY_DIRS})
+    include_directories(
+        ${CMAKE_SOURCE_DIR}/external
+        ${LZ4_INCLUDE_DIRS} 
+        ${ZSTD_INCLUDE_DIRS} 
+        ${OPENSSL_INCLUDE_DIR} 
+        ${CURL_INCLUDE_DIRS} 
+        ${wxWidgets_INCLUDE_DIRS}
+    )
+    link_directories(
+        ${LZ4_LIBRARY_DIRS} 
+        ${ZSTD_LIBRARY_DIRS} 
+        ${OPENSSL_LIBRARIES} 
+        ${CURL_LIBRARIES} 
+        ${wxWidgets_LIBRARY_DIRS}
+    )
 
     execute_process(
         COMMAND wx-config --cxxflags
         OUTPUT_VARIABLE wxWidgets_CXX_FLAGS
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
+
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${wxWidgets_CXX_FLAGS} -Wno-ambiguous-reversed-operator")
+    include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS})
 
     execute_process(
         COMMAND wx-config --libs
         OUTPUT_VARIABLE wxWidgets_LIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    set(LIBS ${LIBS} ${wxWidgets_LIBS})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE zarchive ${LZ4_LIBRARIES} ${ZSTD_LIBRARIES} ${OPENSSL_LIBRARIES} ${CURL_LIBRARIES} ${LIBS})
-
-    include_directories(SYSTEM ${wxWidgets_INCLUDE_DIRS}) # Suppress some warnings come from wxWidgets
+    target_link_libraries(${PROJECT_NAME} PRIVATE 
+        zarchive 
+        ${LZ4_LIBRARIES} 
+        ${ZSTD_LIBRARIES} 
+        ${OPENSSL_LIBRARIES} 
+        ${CURL_LIBRARIES} 
+        ${wxWidgets_LIBS}
+    )
 
 else()
 
