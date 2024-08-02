@@ -65,7 +65,7 @@ These arguments can be stacked, though not all output formats will use them, in 
 By default this compiles as a GUI, configure cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.
 
 ### Windows
-If you have Cmake, MSVC, and ninja (I believe vcpkg needs this) installed, things should be fairly simple. CMake has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory, just by configuring the project. This can take a while but only has to happen once.
+If you have Cmake, MSVC, and ninja (just for vcpkg) installed, things should be fairly simple. CMake has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory, just by configuring the project. This can take a while but only has to happen once.
 
 Clone this repo and make a build directory
 
@@ -77,9 +77,13 @@ cd build
 ```
 
 Configure as GUI: 
-```cmake -S .. -B . -G "Visual Studio 17 2022" -A x64``` 
+```
+cmake -S .. -B . -G "Visual Studio 17 2022" -A x64
+``` 
 or as CLI: 
-```cmake -S .. -B . -DENABLE_GUI=OFF -G "Visual Studio 17 2022" -A x64```
+```
+cmake -S .. -B . -DENABLE_GUI=OFF -G "Visual Studio 17 2022" -A x64
+```
 
 Build
 ```
