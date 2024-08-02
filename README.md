@@ -1,5 +1,5 @@
 # XGDTool
-![App](https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png?raw=true)
+<img src="https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png" alt="App" width="400"/>
 
 XGDTool is an OG and 360 Xbox disc utility, capable of converting discs to and from any mainstream format. It's available as a GUI or CLI app.
 
