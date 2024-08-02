@@ -103,7 +103,14 @@ cd XGDTool
 mkdir build
 cd build
 ```
-Configure as GUI: ```cmake ..``` or as CLI: ```cmake -DENABLE_GUI=OFF ..```
+Configure as GUI: 
+```
+cmake ..
+``` 
+or as CLI: 
+```
+cmake -DENABLE_GUI=OFF ..
+```
 
 Build
 ```
