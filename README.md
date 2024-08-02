@@ -68,7 +68,7 @@ Some other dependancies (attach XBE and OG Xbox title database) are downloaded f
 ### Linux
 This has only been tested with Clang and is still being worked on, you'll need to install some dependancies:
 ```
-# Update package lists and install deps
+# Update and install deps
 sudo apt update
 sudo apt-get install cmake pkg-config liblz4-dev libzstd-dev libssl-dev libcurl4-openssl-dev libwxgtk3.0-gtk3-dev
 
