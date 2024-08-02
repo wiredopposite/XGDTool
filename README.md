@@ -88,11 +88,8 @@ or configure as CLI:
 ```
 cmake -DENABLE_GUI=OFF ..
 ```
-Then
+Build and run
 ```
-# Build
 make
-
-# Run
 ./XGDTool
 ```
