@@ -112,9 +112,10 @@ namespace Xiso {
         Header(const uint32_t in_root_sector, const uint32_t in_root_size, const uint32_t in_total_sectors, const FileTime in_file_time);
     };
     static_assert(sizeof(Header) == Xiso::MAGIC_OFFSET + Xiso::SECTOR_SIZE, "Xiso Header size mismatch");
+    static_assert(sizeof(Header) % SECTOR_SIZE == 0, "Xiso Header size not a multiple of sector size");
     static_assert(offsetof(Header, ecma119_header) == Xiso::ECMA119_DATA_START, "ECMA start offset mismatch");
     static_assert(offsetof(Header, magic1) == Xiso::MAGIC_OFFSET, "Xiso Header magic1 offset mismatch");
-
+    
     #pragma pack(pop)
 
 };

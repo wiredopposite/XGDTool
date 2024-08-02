@@ -8,11 +8,6 @@ namespace EndianUtils {
     constexpr bool is_big_endian() 
     {
         return (1 << 24) & 0x01000000;
-        // union {
-        //     uint32_t i;
-        //     char c[4];
-        // } bint = {0x01020304};
-        // return bint.c[0] == 1;
     }
 
     void big_16(uint16_t &value);    // Only swaps if sys is little endian

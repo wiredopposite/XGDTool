@@ -58,6 +58,7 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--quiet```          Disable all logging except for warnings and errors.
 
 ## Build
+By default this compiles as a GUI, 
 ### Windows
 If you have Ninja, Make, or MSVC installed and accessable in your environment's path, things should be fairly simple. XGDTool is setup with CMake so that it will automatically download and build all library dependancies with vcpkg, inside the project directory, just by configuring or building the project. 
 
@@ -68,25 +69,30 @@ Some other dependancies (attach XBE and OG Xbox title database) are downloaded f
 ### Linux
 This has only been tested with Clang and is still being worked on, you'll need to install some dependancies:
 ```
-# Update and install deps
 sudo apt update
 sudo apt-get install cmake pkg-config liblz4-dev libzstd-dev libssl-dev libcurl4-openssl-dev libwxgtk3.0-gtk3-dev
-
-# Clone with submodules
+```
+Clone and make build directory
+```
 git clone --recursive https://github.com/wiredopposite/XGDTool.git
 cd XGDTool
-
-# Create a build dir
 mkdir build
 cd build
+```
 
-# Configure
+Configure as GUI:
+```
 cmake ..
-
+```
+or configure as CLI:
+```
+cmake -DENABLE_GUI=OFF ..
+```
+Then
+```
 # Build
 make
 
 # Run
 ./XGDTool
-
 ```
