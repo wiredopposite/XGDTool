@@ -82,8 +82,6 @@ cd build
 
 # Configure
 cmake ..
-# or if you need to specify clang
-# cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
 
 # Build
 make
