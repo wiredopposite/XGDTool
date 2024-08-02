@@ -177,6 +177,7 @@ elseif(UNIX)
         ${CURL_INCLUDE_DIRS} 
         ${wxWidgets_INCLUDE_DIRS}
     )
+    
     link_directories(
         ${LZ4_LIBRARY_DIRS} 
         ${ZSTD_LIBRARY_DIRS} 

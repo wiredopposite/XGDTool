@@ -25,6 +25,10 @@ This program is still in initial testing. If you experience an issue, please rep
 ## CLI Usage
 ```XGDTool.exe <output_format> <settings_flags> <input_path> <output_directory>```
 
+or for Linux
+
+```XGDTool <output_format> <settings_flags> <input_path> <output_directory>```
+
 Settings flags and output directory are optional.
 
 ### Output format arguments (mutually exclusive)
