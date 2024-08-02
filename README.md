@@ -11,7 +11,7 @@ This program is still in initial testing. If you experience an issue, please rep
     - CCI
     - CSO
     - ZAR
-- Seamless conversion, e.g. you can directly extract a GoD image, convert an ISO to ZAR archive, or CSO archive to CCI, without writing any temporary files. The only format requiring temporary files is ZAR when provided as input.
+- Seamless conversion, e.g. you can directly extract a GoD image, convert an ISO to ZAR archive, or extracted directory to CCI archive, without writing any temporary files. The only format requiring temporary files is ZAR when provided as input.
 - Image scrubbing ("Partial Scrub"), gets rid of random padding and trims the output file to the shortest length possible.
 - Image reauthoring ("Full Scrub"), completely rewrites the structure of the disc for the smallest possible output file.
 - Image authoring, takes your extracted files and creates a new image with them.
