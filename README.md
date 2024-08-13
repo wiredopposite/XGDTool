@@ -3,7 +3,7 @@
 
 XGDTool is an OG Xbox and Xbox 360 disc utility, capable of converting discs to and from any mainstream format. It's available as a GUI or CLI app.
 
-This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better! Currently it's Windows only, but Linux support is planned.
+This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better!
 
 ## Features
 - Supports convertion between following formats:
