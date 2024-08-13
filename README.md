@@ -64,7 +64,7 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--quiet```          Disable all logging except for warnings and errors.
 
 ## Build
-By default this compiles as a GUI, configure Cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.This app has not yet been tested extensively for x86 or Linux, Linux also has some quirks with wxWidgets so the GUI doesn't look exactly as it should.
+By default this compiles as a GUI, configure Cmake with ```-DENABLE_GUI=OFF``` to compile for CLI. To compile for x86 there would need to be several changes made to the CmakeLists.txt and cmake/seutp_vcpkg.cmake files to accound for that.
 
 ### Windows
 If you have Cmake and MSVC installed, things should be fairly simple. The project has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory by configuring with Cmake. This can take a while depending on your internet speeds and PC specs but only has to happen once.
@@ -93,7 +93,7 @@ cmake --build . --config Release
 ```
 
 ### Linux
-This has only been tested with Clang and is still being worked on, in addition to Clang, Make, and Cmake, you'll need to install some other dependancies:
+This app has not yet been tested extensively for Linux, Linux also has some quirks with wxWidgets so the GUI doesn't look exactly as it should. It's been tested with Clang, in addition to Clang, Make, and Cmake, you'll need to install some other dependancies:
 ```
 sudo apt update
 sudo apt-get install pkg-config liblz4-dev libzstd-dev libssl-dev libcurl4-openssl-dev libwxgtk3.0-gtk3-dev
