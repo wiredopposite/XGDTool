@@ -7,7 +7,7 @@ namespace EndianUtils {
 
     constexpr bool is_big_endian() 
     {
-        return (1 << 24) & 0x01000000;
+        return ((1 << 24) & 0x01000000) != 0;
     }
 
     void big_16(uint16_t &value);    // Only swaps if sys is little endian

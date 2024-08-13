@@ -27,7 +27,7 @@ This program is still in initial testing. If you experience an issue, please rep
 ## CLI Usage
 ```XGDTool.exe <output_format> <settings_flags> <input_path> <output_directory>```
 
-or for Linux
+or on Linux
 
 ```XGDTool <output_format> <settings_flags> <input_path> <output_directory>```
 
@@ -64,10 +64,10 @@ These arguments can be stacked, though not all output formats will use them, in 
 - ```--quiet```          Disable all logging except for warnings and errors.
 
 ## Build
-By default this compiles as a GUI, configure cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.
+By default this compiles as a GUI, configure Cmake with ```-DENABLE_GUI=OFF``` to compile for CLI.This app has not yet been tested extensively for x86 or Linux, Linux also has some quirks with wxWidgets so the GUI doesn't look exactly as it should.
 
 ### Windows
-If you have cmake, MSVC, and ninja (for vcpkg) installed, things should be fairly simple. CMake has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory by configuring the project. This can take a while but only has to happen once.
+If you have Cmake and MSVC installed, things should be fairly simple. The project has been setup for Windows so that it will automatically download and build all dependancies with vcpkg inside the project directory by configuring with Cmake. This can take a while depending on your internet speeds and PC specs but only has to happen once.
 
 Clone this repo and make a build directory
 
