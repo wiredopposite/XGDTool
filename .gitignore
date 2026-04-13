@@ -3,4 +3,5 @@
 build
 src/Executable/AttachXbe.h
 external/CLI
+.DS_Store
 external/nlohmann

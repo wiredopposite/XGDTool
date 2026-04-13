@@ -1,6 +1,8 @@
 #ifndef _XGDLOG_H_
 #define _XGDLOG_H_
 
+#include <cstdint>
+
 #include <iostream>
 #include <sstream>
 

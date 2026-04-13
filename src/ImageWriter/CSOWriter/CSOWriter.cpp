@@ -3,6 +3,8 @@
 #include "AvlTree/AvlIterator.h"
 #include "ImageWriter/CSOWriter/CSOWriter.h"
 
+#include <algorithm>
+
 CSOWriter::CSOWriter(std::shared_ptr<ImageReader> image_reader, const ScrubType scrub_type) 
     :   image_reader_(image_reader),
         scrub_type_(scrub_type)

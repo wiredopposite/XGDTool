@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 namespace StringUtils {
     bool safe_string(const std::string &string);
