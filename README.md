@@ -1,7 +1,7 @@
 # XGDTool
-<img src="https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png" alt="App" width="700"/>
-
 This is a fork of wiredopposite/XGDTool to make compiling using gnumake easier on Linux.
+
+<img src="https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png" alt="App" width="700"/>
 
 ---
 
