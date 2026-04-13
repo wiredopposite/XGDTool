@@ -3,6 +3,8 @@
 
 #include <lz4hc.h>
 
+#include <algorithm>
+
 #include "ImageWriter/CCIWriter/CCIWriter.h"
 #include "AvlTree/AvlIterator.h"
 

@@ -170,7 +170,7 @@ elseif(UNIX)
     find_package(PkgConfig REQUIRED)
     set(ENV{PKG_CONFIG_PATH} "/usr/local/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
-    pkg_check_modules(LZ4 REQUIRED lz4)
+    pkg_check_modules(LZ4 REQUIRED liblz4)
     pkg_check_modules(ZSTD REQUIRED libzstd)
     find_package(OpenSSL REQUIRED)
     find_package(CURL REQUIRED)

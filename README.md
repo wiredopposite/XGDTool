@@ -1,6 +1,10 @@
 # XGDTool
 <img src="https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png" alt="App" width="700"/>
 
+This is a fork of wiredopposite/XGDTool to make compiling using gnumake easier on Linux.
+
+---
+
 XGDTool is an OG Xbox and Xbox 360 disc utility, capable of converting discs to and from any mainstream format. It's available as a GUI or CLI app.
 
 This program is still in initial testing. If you experience an issue, please report it in the Issues tab and help make this program better!
