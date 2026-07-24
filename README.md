@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=wiredopposite&project=XGDTool&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # XGDTool
 <img src="https://github.com/wiredopposite/XGDTool/blob/master/resources/Screenshot.png" alt="App" width="700"/>
 
