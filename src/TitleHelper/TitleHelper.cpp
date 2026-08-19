@@ -131,6 +131,8 @@ bool TitleHelper::set_ogx_titles_online(ExeTool& exe_tool)
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rpk_write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &json_string);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
 
         res = curl_easy_perform(curl);
 
@@ -294,6 +296,8 @@ bool TitleHelper::internet_connected()
     {
         curl_easy_setopt(curl, CURLOPT_URL, "http://www.google.com");
         curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 3L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
         res = curl_easy_perform(curl);
 
         if (res == CURLE_OK) 
@@ -344,6 +348,8 @@ std::string TitleHelper::unity_query(const std::string& title_id)
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, unity_write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
 
         res = curl_easy_perform(curl);
 
@@ -404,6 +410,8 @@ bool TitleHelper::unity_get_title_icon(uint32_t title_id, std::vector<char>& ico
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, unity_png_write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &icon_data);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
 
         res = curl_easy_perform(curl);
 

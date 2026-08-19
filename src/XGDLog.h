@@ -19,11 +19,18 @@ public:
     XGDLog(LogLevel level = Normal) 
         : log_level(level) {}
 
-    ~XGDLog() 
+    ~XGDLog()
     {
-        if (should_log()) 
+        // Route through the same flush path as an explicit "<< Endl"
+        // instead of writing straight to std::cerr. Several call sites in
+        // this codebase (e.g. InputHelper's catch blocks) build a line with
+        // "\n" instead of an explicit Endl and rely on the destructor to
+        // flush it; writing straight to std::cerr here bypassed whatever
+        // sink Endl is wired to (e.g. the desktop GUI's MainFrame), so
+        // those lines never reached the GUI/log consumer.
+        if (should_log() && !oss.str().empty())
         {
-            std::cerr << oss.str();
+            *this << Endl;
         }
     }
 

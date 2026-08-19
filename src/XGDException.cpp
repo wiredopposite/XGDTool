@@ -36,5 +36,12 @@ void XGDException::log_error(Code code, const std::string& info, const std::stri
         }
     }
     error_message += " in " + info + (message.empty() ? "" : (": \n" + message));
+
+    // full_message_ (what this exception's what() returns) was previously
+    // never assigned anywhere in this class, so every caller that logs
+    // e.what() after catching an XGDException got an empty string instead
+    // of the actual error description.
+    full_message_ = error_message;
+
     std::cerr << "\n" << error_message << std::endl;
 }
